@@ -20,8 +20,9 @@ function AppLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-background flex items-center justify-center relative overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[120px] pointer-events-none opacity-50" />
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin z-10" />
       </div>
     );
   }
@@ -32,14 +33,30 @@ function AppLayout() {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      {/* Global Glassmorphic Background */}
+      <div
+        className="fixed inset-0 z-[-1] pointer-events-none"
+        style={{
+          backgroundImage: 'url(/login-bg.png)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+        }}
+      >
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-[20px]" />
+        {/* Subtle accent glows behind everything */}
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+      </div>
+
+      <div className="min-h-screen flex w-full bg-transparent">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
-          <header className="h-12 flex items-center border-b border-border px-4 gap-3 bg-card/50 backdrop-blur-sm sticky top-0 z-10">
-            <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
-            <span className="text-xs text-muted-foreground">ProjectFlow</span>
-          </header>
-          <main className="flex-1 overflow-auto">
+        <div className="flex-1 flex flex-col min-w-0 bg-transparent">
+          <main className="flex-1 overflow-auto p-4 sm:p-8 relative">
+            {/* SidebarTrigger available floating on mobile */}
+            <div className="md:hidden absolute top-4 left-4 z-20">
+              <SidebarTrigger className="text-muted-foreground hover:text-foreground bg-black/40 backdrop-blur-md border border-white/10 rounded-xl" />
+            </div>
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/projetos/novo" element={<NewProject />} />
