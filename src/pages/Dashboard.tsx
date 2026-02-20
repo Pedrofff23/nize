@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/StatusBadge';
+import { AppBreadcrumb } from '@/components/AppBreadcrumb';
 import { Plus, FolderOpen, CalendarDays, DollarSign, Layers, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -37,6 +38,8 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <AppBreadcrumb items={[{ label: 'Projetos' }]} />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>

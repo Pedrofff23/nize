@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { AppBreadcrumb } from '@/components/AppBreadcrumb';
 import {
   useProject,
   useUpdateProject,
@@ -34,7 +35,6 @@ import { TaskBoard } from '@/components/modules/TaskBoard';
 import { ProjectAgenda } from '@/components/modules/ProjectAgenda';
 import { ProjectBudget } from '@/components/modules/ProjectBudget';
 import {
-  ArrowLeft,
   CalendarDays,
   DollarSign,
   Plus,
@@ -248,10 +248,11 @@ export default function ProjectDetail() {
 
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
-      {/* Back */}
-      <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-muted-foreground hover:text-foreground -ml-2">
-        <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
-      </Button>
+      {/* Breadcrumb */}
+      <AppBreadcrumb items={[
+        { label: 'Projetos', href: '/' },
+        { label: project.name },
+      ]} />
 
       {/* Project Header */}
       <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
