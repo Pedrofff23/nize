@@ -1,17 +1,10 @@
-import { useNavigate } from 'react-router-dom';
 import { ProjectForm } from '@/components/ProjectForm';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { AppBreadcrumb } from '@/components/AppBreadcrumb';
 
 export default function NewProject() {
-  const navigate = useNavigate();
-
   return (
     <div className="p-6 max-w-3xl mx-auto space-y-6">
-      <Button variant="ghost" size="sm" onClick={() => navigate('/')}
-        className="text-muted-foreground hover:text-foreground -ml-2">
-        <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
-      </Button>
+      <AppBreadcrumb items={[{ label: 'Projetos', href: '/' }, { label: 'Novo Projeto' }]} />
 
       <div>
         <h1 className="text-2xl font-bold text-foreground">Novo Projeto</h1>
