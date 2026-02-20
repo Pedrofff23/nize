@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ProjectForm } from '@/components/ProjectForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -29,6 +30,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ProjectModule } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { TaskBoard } from '@/components/modules/TaskBoard';
+import { ProjectAgenda } from '@/components/modules/ProjectAgenda';
+import { ProjectBudget } from '@/components/modules/ProjectBudget';
 import {
   ArrowLeft,
   CalendarDays,
@@ -45,6 +49,7 @@ import {
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
+// ─── ModuleRow ────────────────────────────────────────────────────────────────
 function ModuleRow({ module, projectId }: { module: ProjectModule; projectId: string }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(module.name);
@@ -53,12 +58,7 @@ function ModuleRow({ module, projectId }: { module: ProjectModule; projectId: st
   const deleteModule = useDeleteModule();
 
   const save = async () => {
-    await updateModule.mutateAsync({
-      id: module.id,
-      project_id: projectId,
-      name,
-      description: description || null,
-    });
+    await updateModule.mutateAsync({ id: module.id, project_id: projectId, name, description: description || null });
     setEditing(false);
   };
 
@@ -68,11 +68,7 @@ function ModuleRow({ module, projectId }: { module: ProjectModule; projectId: st
       em_andamento: 'concluido',
       concluido: 'pendente',
     };
-    await updateModule.mutateAsync({
-      id: module.id,
-      project_id: projectId,
-      status: next[module.status],
-    });
+    await updateModule.mutateAsync({ id: module.id, project_id: projectId, status: next[module.status] });
   };
 
   return (
@@ -80,11 +76,7 @@ function ModuleRow({ module, projectId }: { module: ProjectModule; projectId: st
       <button
         onClick={cycleStatus}
         className={`mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 transition-all ${
-          module.status === 'concluido'
-            ? 'bg-primary border-primary'
-            : module.status === 'em_andamento'
-            ? 'border-sky-400'
-            : 'border-muted-foreground/40'
+          module.status === 'concluido' ? 'bg-primary border-primary' : module.status === 'em_andamento' ? 'border-sky-400' : 'border-muted-foreground/40'
         }`}
         title="Clique para mudar status"
       >
@@ -99,9 +91,7 @@ function ModuleRow({ module, projectId }: { module: ProjectModule; projectId: st
           </div>
         ) : (
           <>
-            <p className={`text-sm font-medium ${module.status === 'concluido' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-              {module.name}
-            </p>
+            <p className={`text-sm font-medium ${module.status === 'concluido' ? 'line-through text-muted-foreground' : 'text-foreground'}`}>{module.name}</p>
             {module.description && <p className="text-xs text-muted-foreground mt-0.5">{module.description}</p>}
           </>
         )}
@@ -111,26 +101,13 @@ function ModuleRow({ module, projectId }: { module: ProjectModule; projectId: st
         <StatusBadge status={module.status} />
         {editing ? (
           <>
-            <Button size="icon" variant="ghost" onClick={save} className="h-7 w-7 text-primary hover:bg-primary/10">
-              <Check className="w-3.5 h-3.5" />
-            </Button>
-            <Button size="icon" variant="ghost" onClick={() => setEditing(false)} className="h-7 w-7">
-              <X className="w-3.5 h-3.5" />
-            </Button>
+            <Button size="icon" variant="ghost" onClick={save} className="h-7 w-7 text-primary hover:bg-primary/10"><Check className="w-3.5 h-3.5" /></Button>
+            <Button size="icon" variant="ghost" onClick={() => setEditing(false)} className="h-7 w-7"><X className="w-3.5 h-3.5" /></Button>
           </>
         ) : (
           <>
-            <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="h-7 w-7 text-muted-foreground hover:text-foreground">
-              <Pencil className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => deleteModule.mutate({ id: module.id, project_id: projectId })}
-              className="h-7 w-7 text-muted-foreground hover:text-destructive"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+            <Button size="icon" variant="ghost" onClick={() => setEditing(true)} className="h-7 w-7 text-muted-foreground hover:text-foreground"><Pencil className="w-3.5 h-3.5" /></Button>
+            <Button size="icon" variant="ghost" onClick={() => deleteModule.mutate({ id: module.id, project_id: projectId })} className="h-7 w-7 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
           </>
         )}
       </div>
@@ -138,6 +115,7 @@ function ModuleRow({ module, projectId }: { module: ProjectModule; projectId: st
   );
 }
 
+// ─── FileSection ──────────────────────────────────────────────────────────────
 function FileSection({ projectId }: { projectId: string }) {
   const [files, setFiles] = useState<{ name: string; path: string; size?: number }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -150,9 +128,7 @@ function FileSection({ projectId }: { projectId: string }) {
     setLoading(false);
   };
 
-  useState(() => {
-    loadFiles();
-  });
+  useState(() => { loadFiles(); });
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -161,10 +137,7 @@ function FileSection({ projectId }: { projectId: string }) {
     const path = `${projectId}/${Date.now()}_${file.name}`;
     const { error } = await supabase.storage.from('project-files').upload(path, file);
     if (error) toast.error('Erro ao fazer upload.');
-    else {
-      toast.success('Arquivo enviado!');
-      await loadFiles();
-    }
+    else { toast.success('Arquivo enviado!'); await loadFiles(); }
     setUploading(false);
     e.target.value = '';
   };
@@ -183,48 +156,31 @@ function FileSection({ projectId }: { projectId: string }) {
   const handleDelete = async (path: string) => {
     const { error } = await supabase.storage.from('project-files').remove([path]);
     if (error) toast.error('Erro ao remover arquivo.');
-    else {
-      toast.success('Arquivo removido.');
-      await loadFiles();
-    }
+    else { toast.success('Arquivo removido.'); await loadFiles(); }
   };
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-foreground">Arquivos</h3>
+        <h3 className="font-semibold text-foreground">Arquivos Anexados</h3>
         <label className="cursor-pointer">
           <input type="file" className="hidden" onChange={handleUpload} disabled={uploading} />
           <Button asChild variant="outline" size="sm" className="border-primary/40 text-primary hover:bg-primary/10">
-            <span>
-              <Upload className="w-4 h-4 mr-2" />
-              {uploading ? 'Enviando...' : 'Upload'}
-            </span>
+            <span><Upload className="w-4 h-4 mr-2" />{uploading ? 'Enviando...' : 'Upload'}</span>
           </Button>
         </label>
       </div>
-
       {loading && <Skeleton className="h-16 rounded-lg" />}
-
       {!loading && files.length === 0 && (
-        <p className="text-sm text-muted-foreground text-center py-6 border border-dashed border-border rounded-xl">
-          Nenhum arquivo anexado.
-        </p>
+        <p className="text-sm text-muted-foreground text-center py-10 border border-dashed border-border rounded-xl">Nenhum arquivo anexado.</p>
       )}
-
       <div className="space-y-2">
         {files.map((file) => (
           <div key={file.path} className="flex items-center gap-3 p-3 bg-muted/30 border border-border rounded-lg">
             <FileText className="w-4 h-4 text-primary flex-shrink-0" />
             <span className="text-sm text-foreground flex-1 truncate">{file.name}</span>
-            <Button size="icon" variant="ghost" onClick={() => handleDownload(file.path, file.name)}
-              className="h-7 w-7 text-muted-foreground hover:text-primary">
-              <Download className="w-3.5 h-3.5" />
-            </Button>
-            <Button size="icon" variant="ghost" onClick={() => handleDelete(file.path)}
-              className="h-7 w-7 text-muted-foreground hover:text-destructive">
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+            <Button size="icon" variant="ghost" onClick={() => handleDownload(file.path, file.name)} className="h-7 w-7 text-muted-foreground hover:text-primary"><Download className="w-3.5 h-3.5" /></Button>
+            <Button size="icon" variant="ghost" onClick={() => handleDelete(file.path)} className="h-7 w-7 text-muted-foreground hover:text-destructive"><Trash2 className="w-3.5 h-3.5" /></Button>
           </div>
         ))}
       </div>
@@ -232,6 +188,7 @@ function FileSection({ projectId }: { projectId: string }) {
   );
 }
 
+// ─── ProjectDetail ────────────────────────────────────────────────────────────
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -253,13 +210,12 @@ export default function ProjectDetail() {
 
   const handleAddModule = async () => {
     if (!newModName.trim()) return;
-    const nextOrder = (project?.project_modules?.length ?? 0);
     await createModule.mutateAsync({
       project_id: id!,
       name: newModName.trim(),
       description: newModDesc.trim() || null,
       status: newModStatus,
-      order: nextOrder,
+      order: project?.project_modules?.length ?? 0,
     });
     setNewModName('');
     setNewModDesc('');
@@ -269,7 +225,7 @@ export default function ProjectDetail() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4 max-w-4xl mx-auto">
+      <div className="p-6 space-y-4 max-w-5xl mx-auto">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-32 rounded-xl" />
         <Skeleton className="h-64 rounded-xl" />
@@ -291,10 +247,9 @@ export default function ProjectDetail() {
   const progress = modules.length > 0 ? Math.round((doneCount / modules.length) * 100) : 0;
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto">
+    <div className="p-6 space-y-6 max-w-5xl mx-auto">
       {/* Back */}
-      <Button variant="ghost" size="sm" onClick={() => navigate('/')}
-        className="text-muted-foreground hover:text-foreground -ml-2">
+      <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="text-muted-foreground hover:text-foreground -ml-2">
         <ArrowLeft className="w-4 h-4 mr-2" /> Voltar
       </Button>
 
@@ -306,17 +261,13 @@ export default function ProjectDetail() {
               <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
               <StatusBadge status={project.status} size="md" />
             </div>
-            {project.description && (
-              <p className="text-muted-foreground text-sm mt-2">{project.description}</p>
-            )}
+            {project.description && <p className="text-muted-foreground text-sm mt-2">{project.description}</p>}
           </div>
           <div className="flex gap-2 flex-shrink-0">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}
-              className="border-border hover:border-primary/40">
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="border-border hover:border-primary/40">
               <Pencil className="w-4 h-4 mr-2" /> Editar
             </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}
-              className="border-destructive/40 text-destructive hover:bg-destructive/10">
+            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)} className="border-destructive/40 text-destructive hover:bg-destructive/10">
               <Trash2 className="w-4 h-4 mr-2" /> Excluir
             </Button>
           </div>
@@ -326,23 +277,19 @@ export default function ProjectDetail() {
           {project.deadline && (
             <div className="flex items-center gap-2 text-muted-foreground">
               <CalendarDays className="w-4 h-4 text-primary" />
-              Prazo: <span className="text-foreground font-medium">
-                {format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}
-              </span>
+              Prazo: <span className="text-foreground font-medium">{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
             </div>
           )}
           <div className="flex items-center gap-2 text-muted-foreground">
             <DollarSign className="w-4 h-4 text-primary" />
-            Valor: <span className="text-foreground font-medium">
-              {(project.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            </span>
+            Valor: <span className="text-foreground font-medium">{(project.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
           </div>
         </div>
 
         {modules.length > 0 && (
           <div className="space-y-1.5">
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{doneCount}/{modules.length} módulos concluídos</span>
+              <span>{doneCount}/{modules.length} módulos customizados concluídos</span>
               <span>{progress}%</span>
             </div>
             <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -352,67 +299,97 @@ export default function ProjectDetail() {
         )}
       </div>
 
-      {/* Modules */}
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-foreground text-lg">Módulos</h2>
-          <Button variant="outline" size="sm" onClick={() => setAddingModule(true)}
-            className="border-primary/40 text-primary hover:bg-primary/10">
-            <Plus className="w-4 h-4 mr-2" /> Adicionar
-          </Button>
-        </div>
+      {/* Tabs */}
+      <Tabs defaultValue="tasks" className="space-y-4">
+        <TabsList className="bg-card border border-border h-auto p-1 flex flex-wrap gap-1">
+          <TabsTrigger value="tasks" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
+            Tarefas
+          </TabsTrigger>
+          <TabsTrigger value="agenda" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
+            Agenda
+          </TabsTrigger>
+          <TabsTrigger value="budget" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
+            Orçamento
+          </TabsTrigger>
+          <TabsTrigger value="modules" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
+            Módulos
+          </TabsTrigger>
+          <TabsTrigger value="files" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
+            Arquivos
+          </TabsTrigger>
+        </TabsList>
 
-        {addingModule && (
-          <div className="bg-muted/30 border border-primary/30 rounded-xl p-4 space-y-3">
-            <Input value={newModName} onChange={(e) => setNewModName(e.target.value)}
-              placeholder="Nome do módulo *" className="bg-background border-border" />
-            <Textarea value={newModDesc} onChange={(e) => setNewModDesc(e.target.value)}
-              placeholder="Descrição (opcional)" rows={2} className="bg-background border-border resize-none" />
-            <Select value={newModStatus} onValueChange={(v) => setNewModStatus(v as ProjectModule['status'])}>
-              <SelectTrigger className="bg-background border-border">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-card border-border">
-                <SelectItem value="pendente">Pendente</SelectItem>
-                <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                <SelectItem value="concluido">Concluído</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="flex gap-2">
-              <Button onClick={handleAddModule} size="sm" className="gradient-teal text-primary-foreground hover:opacity-90">
-                Adicionar
-              </Button>
-              <Button onClick={() => setAddingModule(false)} size="sm" variant="outline" className="border-border">
-                Cancelar
+        {/* Tarefas */}
+        <TabsContent value="tasks">
+          <TaskBoard projectId={id!} />
+        </TabsContent>
+
+        {/* Agenda */}
+        <TabsContent value="agenda">
+          <ProjectAgenda projectId={id!} />
+        </TabsContent>
+
+        {/* Orçamento */}
+        <TabsContent value="budget">
+          <ProjectBudget projectId={id!} />
+        </TabsContent>
+
+        {/* Módulos customizados */}
+        <TabsContent value="modules">
+          <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-semibold text-foreground text-lg">Módulos Customizados</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">Adicione módulos específicos para este projeto</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setAddingModule(true)} className="border-primary/40 text-primary hover:bg-primary/10">
+                <Plus className="w-4 h-4 mr-2" /> Adicionar
               </Button>
             </div>
+
+            {addingModule && (
+              <div className="bg-muted/30 border border-primary/30 rounded-xl p-4 space-y-3">
+                <Input value={newModName} onChange={(e) => setNewModName(e.target.value)} placeholder="Nome do módulo *" className="bg-background border-border" />
+                <Textarea value={newModDesc} onChange={(e) => setNewModDesc(e.target.value)} placeholder="Descrição (opcional)" rows={2} className="bg-background border-border resize-none" />
+                <Select value={newModStatus} onValueChange={(v) => setNewModStatus(v as ProjectModule['status'])}>
+                  <SelectTrigger className="bg-background border-border"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-card border-border">
+                    <SelectItem value="pendente">Pendente</SelectItem>
+                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                    <SelectItem value="concluido">Concluído</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex gap-2">
+                  <Button onClick={handleAddModule} size="sm" className="gradient-teal text-primary-foreground hover:opacity-90">Adicionar</Button>
+                  <Button onClick={() => setAddingModule(false)} size="sm" variant="outline" className="border-border">Cancelar</Button>
+                </div>
+              </div>
+            )}
+
+            {modules.length === 0 && !addingModule && (
+              <p className="text-sm text-muted-foreground text-center py-10 border border-dashed border-border rounded-xl">
+                Nenhum módulo customizado ainda. Adicione para organizar entregas específicas.
+              </p>
+            )}
+
+            <div className="space-y-2">
+              {modules.map((m) => <ModuleRow key={m.id} module={m} projectId={id!} />)}
+            </div>
           </div>
-        )}
+        </TabsContent>
 
-        {modules.length === 0 && !addingModule && (
-          <p className="text-sm text-muted-foreground text-center py-6 border border-dashed border-border rounded-xl">
-            Nenhum módulo ainda.
-          </p>
-        )}
-
-        <div className="space-y-2">
-          {modules.map((m) => (
-            <ModuleRow key={m.id} module={m} projectId={id!} />
-          ))}
-        </div>
-      </div>
-
-      {/* Files */}
-      <div className="bg-card border border-border rounded-2xl p-6">
-        <FileSection projectId={id!} />
-      </div>
+        {/* Arquivos */}
+        <TabsContent value="files">
+          <div className="bg-card border border-border rounded-2xl p-6">
+            <FileSection projectId={id!} />
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar Projeto</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Editar Projeto</DialogTitle></DialogHeader>
           <ProjectForm project={project} onCancel={() => setEditOpen(false)} />
         </DialogContent>
       </Dialog>
@@ -423,14 +400,12 @@ export default function ProjectDetail() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir projeto?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Esta ação é irreversível. Todos os módulos e arquivos serão excluídos.
+              Esta ação é irreversível. Todos os dados e arquivos serão excluídos.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
