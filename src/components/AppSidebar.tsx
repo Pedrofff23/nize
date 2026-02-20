@@ -1,5 +1,5 @@
-import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, FolderOpen, LogOut, FolderKanban } from 'lucide-react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { LayoutDashboard, LogOut } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -16,12 +16,12 @@ import { Button } from '@/components/ui/button';
 
 const navItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'Projetos', url: '/projetos', icon: FolderOpen },
 ];
 
 export function AppSidebar() {
   const { signOut, user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <Sidebar variant="floating" className="border-none bg-transparent">
@@ -94,7 +94,10 @@ export function AppSidebar() {
 
         <SidebarFooter className="p-6 pt-0 border-none mt-auto">
           {/* Dashed "Novo Projeto" Block matched from image reference */}
-          <div className="w-full rounded-[1.5rem] border-2 border-dashed border-white/10 p-5 flex flex-col items-center justify-center text-center mb-6 hover:border-primary/50 transition-colors group cursor-pointer bg-black/10">
+          <div
+            onClick={() => navigate('/projetos/novo')}
+            className="w-full rounded-[1.5rem] border-2 border-dashed border-white/10 p-5 flex flex-col items-center justify-center text-center mb-6 hover:border-primary/50 transition-colors group cursor-pointer bg-black/10"
+          >
             <div className="w-10 h-10 rounded-full gradient-teal flex items-center justify-center text-primary-foreground mb-3 shadow-[0_4px_15px_hsl(175_100%_45%_/_0.3)] group-hover:scale-110 transition-transform">
               <span className="text-xl leading-none font-medium">+</span>
             </div>
