@@ -38,10 +38,10 @@ export default function Dashboard() {
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground text-sm mt-1">Visão geral dos seus projetos</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Projetos</h1>
+          <p className="text-muted-foreground text-sm mt-1">Gerencie e acompanhe seus projetos</p>
         </div>
         <Button
           onClick={() => navigate('/projetos/novo')}
@@ -64,94 +64,88 @@ export default function Dashboard() {
       </div>
 
       {/* Projects Grid */}
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Projetos Recentes</h2>
+      {isLoading && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-48 rounded-xl" />
+          ))}
+        </div>
+      )}
 
-        {isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className="h-48 rounded-xl" />
-            ))}
-          </div>
-        )}
+      {!isLoading && projects?.length === 0 && (
+        <div className="text-center py-20 border border-dashed border-border rounded-2xl">
+          <FolderOpen className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground">Nenhum projeto ainda.</p>
+          <Button
+            onClick={() => navigate('/projetos/novo')}
+            variant="outline"
+            className="mt-4 border-primary/40 text-primary hover:bg-primary/10"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Criar primeiro projeto
+          </Button>
+        </div>
+      )}
 
-        {!isLoading && projects?.length === 0 && (
-          <div className="text-center py-16 border border-dashed border-border rounded-2xl">
-            <FolderOpen className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground">Nenhum projeto ainda.</p>
-            <Button
-              onClick={() => navigate('/projetos/novo')}
-              variant="outline"
-              className="mt-4 border-primary/40 text-primary hover:bg-primary/10"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Criar primeiro projeto
-            </Button>
-          </div>
-        )}
+      {!isLoading && projects && projects.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {projects.map((project) => {
+            const moduleCount = project.project_modules?.length ?? 0;
+            const doneCount = project.project_modules?.filter((m) => m.status === 'concluido').length ?? 0;
+            const progress = moduleCount > 0 ? Math.round((doneCount / moduleCount) * 100) : 0;
 
-        {!isLoading && projects && projects.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {projects.map((project) => {
-              const moduleCount = project.project_modules?.length ?? 0;
-              const doneCount = project.project_modules?.filter((m) => m.status === 'concluido').length ?? 0;
-              const progress = moduleCount > 0 ? Math.round((doneCount / moduleCount) * 100) : 0;
+            return (
+              <Card
+                key={project.id}
+                className="bg-card/80 backdrop-blur-md border-border/50 hover:border-primary/50 transition-all duration-300 cursor-pointer group hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,228,206,0.15)] overflow-hidden relative"
+                onClick={() => navigate(`/projetos/${project.id}`)}
+              >
+                <div className="absolute top-0 left-0 w-full h-1 gradient-teal opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardContent className="p-5 space-y-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1">
+                      {project.name}
+                    </h3>
+                    <StatusBadge status={project.status} />
+                  </div>
 
-              return (
-                <Card
-                  key={project.id}
-                  className="bg-card/80 backdrop-blur-md border-border/50 hover:border-primary/50 transition-all duration-300 cursor-pointer group hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,228,206,0.15)] overflow-hidden relative"
-                  onClick={() => navigate(`/projetos/${project.id}`)}
-                >
-                  <div className="absolute top-0 left-0 w-full h-1 gradient-teal opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <CardContent className="p-5 space-y-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1">
-                        {project.name}
-                      </h3>
-                      <StatusBadge status={project.status} />
-                    </div>
-
-                    <div className="space-y-2 text-sm text-muted-foreground/80">
-                      {project.deadline && (
-                         <div className="flex items-center gap-2">
-                           <CalendarDays className="w-4 h-4 text-primary/80 flex-shrink-0" />
-                           <span>{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
-                         </div>
-                       )}
-                       <div className="flex items-center gap-2">
-                         <DollarSign className="w-4 h-4 text-primary/80 flex-shrink-0" />
-                         <span>
-                           {(project.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                         </span>
-                       </div>
-                       <div className="flex items-center gap-2">
-                         <Layers className="w-4 h-4 text-primary/80 flex-shrink-0" />
-                         <span>{moduleCount} módulo{moduleCount !== 1 ? 's' : ''}</span>
-                       </div>
-                    </div>
-
-                    {moduleCount > 0 && (
-                      <div className="space-y-1.5 pt-2 border-t border-border/30">
-                        <div className="flex justify-between text-xs font-medium text-muted-foreground">
-                          <span>Progresso</span>
-                          <span className="text-foreground">{progress}%</span>
-                        </div>
-                        <div className="h-2 bg-muted/50 rounded-full overflow-hidden border border-border/20">
-                          <div
-                            className="h-full gradient-teal rounded-full transition-all duration-500 relative shadow-[0_0_10px_rgba(0,228,206,0.5)]"
-                            style={{ width: `${progress}%` }}
-                          />
-                        </div>
+                  <div className="space-y-2 text-sm text-muted-foreground/80">
+                    {project.deadline && (
+                      <div className="flex items-center gap-2">
+                        <CalendarDays className="w-4 h-4 text-primary/80 flex-shrink-0" />
+                        <span>{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
                       </div>
                     )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="w-4 h-4 text-primary/80 flex-shrink-0" />
+                      <span>{(project.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-primary/80 flex-shrink-0" />
+                      <span>{moduleCount} módulo{moduleCount !== 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+
+                  {moduleCount > 0 && (
+                    <div className="space-y-1.5 pt-2 border-t border-border/30">
+                      <div className="flex justify-between text-xs font-medium text-muted-foreground">
+                        <span>Progresso</span>
+                        <span className="text-foreground">{progress}%</span>
+                      </div>
+                      <div className="h-2 bg-muted/50 rounded-full overflow-hidden border border-border/20">
+                        <div
+                          className="h-full gradient-teal rounded-full transition-all duration-500 shadow-[0_0_10px_rgba(0,228,206,0.5)]"
+                          style={{ width: `${progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
