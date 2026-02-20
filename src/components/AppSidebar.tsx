@@ -15,7 +15,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
+  { title: 'Projetos', url: '/', icon: LayoutDashboard },
 ];
 
 export function AppSidebar() {
