@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/StatusBadge';
 import { AppBreadcrumb } from '@/components/AppBreadcrumb';
-import { Plus, FolderOpen, CalendarDays, DollarSign, Layers, TrendingUp } from 'lucide-react';
+import { Plus, FolderOpen, CalendarDays, DollarSign, Layers, TrendingUp, User, Building2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -113,6 +113,18 @@ export default function Dashboard() {
                   </div>
 
                   <div className="space-y-2 text-sm text-muted-foreground/80">
+                    {project.client && (
+                      <div className="flex items-center gap-2">
+                        {(project.client as any).type === 'pf'
+                          ? <User className="w-4 h-4 text-sky-400/80 flex-shrink-0" />
+                          : <Building2 className="w-4 h-4 text-amber-400/80 flex-shrink-0" />}
+                        <span className="truncate">
+                          {(project.client as any).type === 'pj'
+                            ? ((project.client as any).fantasy_name || (project.client as any).company_name || (project.client as any).name)
+                            : (project.client as any).name}
+                        </span>
+                      </div>
+                    )}
                     {project.deadline && (
                       <div className="flex items-center gap-2">
                         <CalendarDays className="w-4 h-4 text-primary/80 flex-shrink-0" />

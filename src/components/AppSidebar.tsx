@@ -1,5 +1,9 @@
+import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, LogOut } from 'lucide-react';
+import {
+  LayoutDashboard, LogOut, Users, ChevronDown, ChevronRight,
+  FolderOpen, ListTodo, CalendarDays, DollarSign, Layers, FileText,
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -12,20 +16,40 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/hooks/useAuth';
+import { useProjects } from '@/hooks/useProjects';
 import { Button } from '@/components/ui/button';
 
-const navItems = [
-  { title: 'Projetos', url: '/', icon: LayoutDashboard },
+const projectSubItems = [
+  { title: 'Tarefas', tab: 'tasks', icon: ListTodo },
+  { title: 'Agenda', tab: 'agenda', icon: CalendarDays },
+  { title: 'Orçamento', tab: 'budget', icon: DollarSign },
+  { title: 'Módulos', tab: 'modules', icon: Layers },
+  { title: 'Arquivos', tab: 'files', icon: FileText },
 ];
 
 export function AppSidebar() {
   const { signOut, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { data: projects } = useProjects();
+
+  const [projectsOpen, setProjectsOpen] = useState(true);
+
+  // Extract current project ID from URL
+  const projectMatch = location.pathname.match(/^\/projetos\/([^/]+)$/);
+  const activeProjectId = projectMatch ? projectMatch[1] : null;
+  // Don't count "novo" as a project ID
+  const isOnProjectDetail = activeProjectId && activeProjectId !== 'novo';
+
+  // Extract current tab from search params
+  const searchParams = new URLSearchParams(location.search);
+  const activeTab = searchParams.get('tab') || 'tasks';
+
+  const isProjectsSection = location.pathname === '/' || location.pathname.startsWith('/projetos');
+  const isClientsSection = location.pathname.startsWith('/clientes');
 
   return (
     <Sidebar variant="floating" className="border-none bg-transparent">
-      {/* Container to handle the rounded corners, glassmorphism and padding to look floating */}
       <div className="flex h-full w-full flex-col bg-white/[0.03] backdrop-blur-xl rounded-[2rem] border border-white/5 shadow-2xl relative overflow-hidden">
 
         <SidebarHeader className="p-6 pb-2 border-none">
@@ -54,46 +78,121 @@ export function AppSidebar() {
             </svg>
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Buscar..."
               className="w-full h-10 bg-black/20 border border-white/5 rounded-xl text-sm pl-10 pr-4 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all"
             />
           </div>
         </SidebarHeader>
 
-        <SidebarContent className="py-6 px-4">
+        <SidebarContent className="py-4 px-4 overflow-y-auto">
           <SidebarGroup className="p-0">
             <SidebarGroupContent>
-              <SidebarMenu className="space-y-2">
-                {navItems.map((item) => {
-                  const isActive = item.url === '/'
-                    ? location.pathname === '/'
-                    : location.pathname.startsWith(item.url);
-                  return (
-                    <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton asChild>
-                        <NavLink
-                          to={item.url}
-                          className={`group flex items-center justify-between px-4 py-3.5 rounded-2xl text-[14px] transition-all duration-300 relative overflow-hidden ${isActive
-                            ? 'gradient-teal text-primary-foreground font-semibold shadow-lg glow-teal'
+              <SidebarMenu className="space-y-1">
+
+                {/* ── Projetos (Collapsible) ─────────────────────────── */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <button
+                      onClick={() => {
+                        setProjectsOpen(!projectsOpen);
+                        navigate('/');
+                      }}
+                      className={`group w-full flex items-center justify-between px-4 py-3 rounded-2xl text-[14px] transition-all duration-300 relative overflow-hidden ${isProjectsSection && !isOnProjectDetail
+                          ? 'gradient-teal text-primary-foreground font-semibold shadow-lg glow-teal'
+                          : isProjectsSection
+                            ? 'bg-white/5 text-foreground font-semibold'
                             : 'text-muted-foreground hover:bg-white/5 hover:text-white font-medium'
-                            }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <item.icon className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? 'text-primary-foreground' : ''}`} />
-                            <span>{item.title}</span>
-                          </div>
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  );
-                })}
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <LayoutDashboard className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isProjectsSection && !isOnProjectDetail ? 'text-primary-foreground' : ''}`} />
+                        <span>Projetos</span>
+                      </div>
+                      {projectsOpen
+                        ? <ChevronDown className="w-4 h-4 opacity-60" />
+                        : <ChevronRight className="w-4 h-4 opacity-60" />
+                      }
+                    </button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {/* Project List (Collapsible Content) */}
+                {projectsOpen && (
+                  <div className="ml-3 pl-3 border-l border-white/5 space-y-0.5">
+                    {projects?.map((project) => {
+                      const isActiveProject = isOnProjectDetail && activeProjectId === project.id;
+                      return (
+                        <div key={project.id}>
+                          {/* Project Name */}
+                          <button
+                            onClick={() => navigate(`/projetos/${project.id}`)}
+                            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] transition-all duration-200 ${isActiveProject
+                                ? 'bg-primary/10 text-primary font-medium'
+                                : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                              }`}
+                          >
+                            <FolderOpen className={`w-4 h-4 flex-shrink-0 ${isActiveProject ? 'text-primary' : ''}`} />
+                            <span className="truncate">{project.name}</span>
+                          </button>
+
+                          {/* Project Sub Items (only when this project is active) */}
+                          {isActiveProject && (
+                            <div className="ml-4 pl-3 border-l border-primary/20 space-y-0.5 mt-0.5 mb-1">
+                              {projectSubItems.map((sub) => {
+                                const isActiveTab = activeTab === sub.tab;
+                                return (
+                                  <button
+                                    key={sub.tab}
+                                    onClick={() => navigate(`/projetos/${project.id}?tab=${sub.tab}`)}
+                                    className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[12px] transition-all duration-200 ${isActiveTab
+                                        ? 'text-primary font-medium bg-primary/5'
+                                        : 'text-muted-foreground/70 hover:text-foreground hover:bg-white/5'
+                                      }`}
+                                  >
+                                    <sub.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActiveTab ? 'text-primary' : ''}`} />
+                                    <span>{sub.title}</span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+
+                    {(!projects || projects.length === 0) && (
+                      <p className="text-[11px] text-muted-foreground/50 px-3 py-2 italic">
+                        Nenhum projeto
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Clientes ───────────────────────────────────────── */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/clientes"
+                      className={`group flex items-center justify-between px-4 py-3 rounded-2xl text-[14px] transition-all duration-300 relative overflow-hidden ${isClientsSection
+                          ? 'gradient-teal text-primary-foreground font-semibold shadow-lg glow-teal'
+                          : 'text-muted-foreground hover:bg-white/5 hover:text-white font-medium'
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Users className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isClientsSection ? 'text-primary-foreground' : ''}`} />
+                        <span>Clientes</span>
+                      </div>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
               </SidebarMenu>
             </SidebarGroupContent>
           </SidebarGroup>
         </SidebarContent>
 
         <SidebarFooter className="p-6 pt-0 border-none mt-auto">
-          {/* Dashed "Novo Projeto" Block matched from image reference */}
+          {/* Dashed "Novo Projeto" Block */}
           <div
             onClick={() => navigate('/projetos/novo')}
             className="w-full rounded-[1.5rem] border-2 border-dashed border-white/10 p-5 flex flex-col items-center justify-center text-center mb-6 hover:border-primary/50 transition-colors group cursor-pointer bg-black/10"

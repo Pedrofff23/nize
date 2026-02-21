@@ -1,0 +1,793 @@
+/* ─── Flowchart Canvas ──────────────────────────────────────────────────────── */
+.flowchart-wrapper {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 200px);
+  min-height: 500px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid hsl(190 25% 18%);
+  background: hsl(190 25% 6%);
+}
+
+.flowchart-canvas {
+  width: 100%;
+  height: 100%;
+  cursor: default;
+  outline: none;
+}
+
+.flowchart-canvas.tool-pan {
+  cursor: grab;
+}
+
+.flowchart-canvas.tool-pan:active {
+  cursor: grabbing;
+}
+
+.flowchart-canvas.tool-shape {
+  cursor: crosshair;
+}
+
+.flowchart-canvas.tool-connect {
+  cursor: crosshair;
+}
+
+/* ─── Grid ─────────────────────────────────────────────────────────────────── */
+.flowchart-grid-line {
+  stroke: hsl(190 25% 14%);
+  stroke-width: 0.5;
+}
+
+.flowchart-grid-line-major {
+  stroke: hsl(190 25% 16%);
+  stroke-width: 1;
+}
+
+/* ─── Nodes ────────────────────────────────────────────────────────────────── */
+.flowchart-node {
+  cursor: move;
+  transition: filter 0.15s ease;
+}
+
+.flowchart-node:hover .node-shape {
+  filter: brightness(1.1);
+}
+
+.flowchart-node.selected .node-shape {
+  filter: brightness(1.15);
+}
+
+.flowchart-node .node-shape {
+  transition: filter 0.15s ease;
+}
+
+/* Node selection glow */
+.node-selection-outline {
+  fill: none;
+  stroke: hsl(175 100% 45%);
+  stroke-width: 2;
+  stroke-dasharray: 6 3;
+  animation: selection-dash 0.8s linear infinite;
+}
+
+@keyframes selection-dash {
+  to {
+    stroke-dashoffset: -9;
+  }
+}
+
+/* ─── Resize Handles ───────────────────────────────────────────────────────── */
+.resize-handle {
+  fill: hsl(190 25% 8%);
+  stroke: hsl(175 100% 45%);
+  stroke-width: 1.5;
+  cursor: nwse-resize;
+  transition: fill 0.15s ease, r 0.15s ease;
+  opacity: 0;
+}
+
+.flowchart-node.selected .resize-handle {
+  opacity: 1;
+}
+
+.resize-handle:hover {
+  fill: hsl(175 100% 45%);
+}
+
+.resize-handle.handle-top-left { cursor: nwse-resize; }
+.resize-handle.handle-top { cursor: ns-resize; }
+.resize-handle.handle-top-right { cursor: nesw-resize; }
+.resize-handle.handle-left { cursor: ew-resize; }
+.resize-handle.handle-right { cursor: ew-resize; }
+.resize-handle.handle-bottom-left { cursor: nesw-resize; }
+.resize-handle.handle-bottom { cursor: ns-resize; }
+.resize-handle.handle-bottom-right { cursor: nwse-resize; }
+
+/* ─── Ports ────────────────────────────────────────────────────────────────── */
+.port-circle {
+  fill: hsl(190 25% 12%);
+  stroke: hsl(175 100% 45% / 0.5);
+  stroke-width: 1.5;
+  r: 5;
+  transition: fill 0.15s ease, r 0.15s ease, stroke 0.15s ease;
+  opacity: 0;
+}
+
+.flowchart-node:hover .port-circle,
+.flowchart-node.selected .port-circle,
+.flowchart-canvas.tool-connect .port-circle {
+  opacity: 1;
+}
+
+.port-circle:hover {
+  fill: hsl(175 100% 45%);
+  stroke: hsl(175 100% 55%);
+  r: 7;
+  cursor: crosshair;
+}
+
+/* ─── Edges ────────────────────────────────────────────────────────────────── */
+.flowchart-edge path {
+  fill: none;
+  stroke: hsl(190 20% 45%);
+  stroke-width: 2;
+  transition: stroke 0.15s ease;
+}
+
+.flowchart-edge:hover path {
+  stroke: hsl(175 100% 50%);
+  stroke-width: 2.5;
+}
+
+.flowchart-edge.selected path {
+  stroke: hsl(175 100% 45%);
+  stroke-width: 2.5;
+}
+
+.flowchart-edge .edge-arrow {
+  fill: hsl(190 20% 45%);
+  transition: fill 0.15s ease;
+}
+
+.flowchart-edge:hover .edge-arrow,
+.flowchart-edge.selected .edge-arrow {
+  fill: hsl(175 100% 45%);
+}
+
+.flowchart-edge .edge-hit-area {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+  cursor: pointer;
+}
+
+/* ─── Toolbar ──────────────────────────────────────────────────────────────── */
+.flowchart-toolbar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px;
+  background: hsl(190 25% 10% / 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid hsl(190 25% 20% / 0.6);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.4);
+  z-index: 10;
+}
+
+.flowchart-toolbar .toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: hsl(190 25% 25%);
+  margin: 0 4px;
+}
+
+.flowchart-toolbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: hsl(190 20% 65%);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  gap: 4px;
+  font-family: 'Inter', sans-serif;
+}
+
+.flowchart-toolbar button:hover {
+  background: hsl(190 25% 18%);
+  color: hsl(0 0% 100%);
+}
+
+.flowchart-toolbar button.active {
+  background: hsl(175 100% 45% / 0.15);
+  color: hsl(175 100% 50%);
+  box-shadow: inset 0 0 0 1px hsl(175 100% 45% / 0.3);
+}
+
+.flowchart-toolbar .mode-selector {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  background: hsl(190 25% 14%);
+  border-radius: 10px;
+  padding: 2px;
+}
+
+.flowchart-toolbar .mode-selector button {
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.flowchart-toolbar .mode-selector button.active {
+  background: hsl(175 100% 45%);
+  color: hsl(190 25% 8%);
+  box-shadow: 0 2px 8px hsl(175 100% 45% / 0.4);
+}
+
+/* ─── Shape Palette ────────────────────────────────────────────────────────── */
+.shape-palette {
+  position: absolute;
+  left: 12px;
+  top: 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+  background: hsl(190 25% 10% / 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid hsl(190 25% 20% / 0.6);
+  border-radius: 14px;
+  box-shadow: 0 8px 32px hsl(0 0% 0% / 0.4);
+  z-index: 10;
+}
+
+.shape-palette button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: hsl(190 20% 65%);
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  gap: 3px;
+  min-width: 64px;
+  font-family: 'Inter', sans-serif;
+}
+
+.shape-palette button:hover {
+  background: hsl(190 25% 18%);
+  color: hsl(0 0% 100%);
+}
+
+.shape-palette button.active {
+  background: hsl(175 100% 45% / 0.15);
+  color: hsl(175 100% 50%);
+  box-shadow: inset 0 0 0 1px hsl(175 100% 45% / 0.3);
+}
+
+.shape-palette .shape-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+/* ─── Zoom Controls ────────────────────────────────────────────────────────── */
+.zoom-controls {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: hsl(190 25% 10% / 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid hsl(190 25% 20% / 0.6);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px hsl(0 0% 0% / 0.3);
+  z-index: 10;
+}
+
+.zoom-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: hsl(190 20% 65%);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.zoom-controls button:hover {
+  background: hsl(190 25% 18%);
+  color: hsl(0 0% 100%);
+}
+
+.zoom-controls .zoom-label {
+  color: hsl(190 20% 55%);
+  font-size: 11px;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ─── Inline Edit ──────────────────────────────────────────────────────────── */
+.node-inline-edit {
+  position: absolute;
+  z-index: 20;
+}
+
+.node-inline-edit input {
+  background: hsl(190 25% 10%);
+  border: 1px solid hsl(175 100% 45%);
+  border-radius: 6px;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 4px 8px;
+  text-align: center;
+  outline: none;
+  box-shadow: 0 0 12px hsl(175 100% 45% / 0.3);
+  font-family: 'Inter', sans-serif;
+}
+
+/* ─── Connection preview ───────────────────────────────────────────────────── */
+.connection-preview {
+  fill: none;
+  stroke: hsl(175 100% 45% / 0.5);
+  stroke-width: 2;
+  stroke-dasharray: 8 4;
+  pointer-events: none;
+}
+
+/* ─── ER specific styles ───────────────────────────────────────────────────── */
+.er-relationship-shape {
+  fill: hsl(280 40% 20%);
+  stroke: hsl(280 60% 50%);
+  stroke-width: 2;
+}
+
+/* ─── BPMN specific styles ─────────────────────────────────────────────────── */
+.bpmn-start-shape {
+  fill: hsl(145 50% 18%);
+  stroke: hsl(145 70% 45%);
+  stroke-width: 2.5;
+}
+
+.bpmn-end-shape {
+  fill: hsl(0 50% 20%);
+  stroke: hsl(0 70% 50%);
+  stroke-width: 3;
+}
+
+.bpmn-task-shape {
+  fill: hsl(210 40% 18%);
+  stroke: hsl(210 60% 45%);
+  stroke-width: 2;
+  rx: 10;
+}
+
+.bpmn-gateway-shape {
+  fill: hsl(45 50% 18%);
+  stroke: hsl(45 80% 50%);
+  stroke-width: 2;
+}
+
+.bpmn-intermediate-shape {
+  fill: hsl(30 50% 18%);
+  stroke: hsl(30 70% 50%);
+  stroke-width: 2;
+}
+
+/* ─── Free mode specific styles ────────────────────────────────────────────── */
+.free-rect-shape {
+  fill: hsl(220 30% 18%);
+  stroke: hsl(220 50% 50%);
+  stroke-width: 2;
+  rx: 8;
+}
+
+.free-ellipse-shape {
+  fill: hsl(180 30% 18%);
+  stroke: hsl(180 50% 45%);
+  stroke-width: 2;
+}
+
+.free-diamond-shape {
+  fill: hsl(300 30% 18%);
+  stroke: hsl(300 50% 50%);
+  stroke-width: 2;
+}
+
+.free-text-shape {
+  fill: transparent;
+  stroke: none;
+}
+
+.free-note-shape {
+  fill: hsl(50 40% 15%);
+  stroke: hsl(50 50% 40%);
+  stroke-width: 1.5;
+  rx: 6;
+}
+
+/* ─── Node text ────────────────────────────────────────────────────────────── */
+.node-label {
+  fill: hsl(0 0% 95%);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  user-select: none;
+}
+
+.node-sublabel {
+  fill: hsl(190 20% 65%);
+  font-size: 10px;
+  font-weight: 400;
+  font-family: 'Inter', sans-serif;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ─── Edge label ───────────────────────────────────────────────────────────── */
+.edge-label-bg {
+  fill: hsl(190 25% 10%);
+  rx: 4;
+}
+
+.edge-label-text {
+  fill: hsl(190 20% 75%);
+  font-size: 11px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* ─── Table Editor Panel ───────────────────────────────────────────────────── */
+.table-editor-panel {
+  position: absolute;
+  z-index: 30;
+  width: 360px;
+  max-height: 500px;
+  overflow-y: auto;
+  background: hsl(220 30% 10% / 0.95);
+  backdrop-filter: blur(24px);
+  border: 1px solid hsl(210 60% 30% / 0.7);
+  border-radius: 16px;
+  box-shadow: 0 16px 64px hsl(0 0% 0% / 0.6), 0 0 0 1px hsl(210 60% 35% / 0.2);
+  font-family: 'Inter', sans-serif;
+  color: hsl(0 0% 90%);
+}
+
+.table-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(210 30% 20%);
+}
+
+.table-editor-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: hsl(0 0% 96%);
+}
+
+.table-editor-icon {
+  font-size: 16px;
+}
+
+.table-editor-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: hsl(210 20% 50%);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.table-editor-close:hover {
+  background: hsl(0 50% 35%);
+  color: white;
+}
+
+.table-editor-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid hsl(210 30% 18%);
+}
+
+.table-editor-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: hsl(210 20% 55%);
+  margin-bottom: 6px;
+}
+
+.table-editor-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.table-editor-input {
+  width: 100%;
+  padding: 8px 10px;
+  background: hsl(220 30% 14%);
+  border: 1px solid hsl(210 30% 25%);
+  border-radius: 8px;
+  color: hsl(0 0% 95%);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.table-editor-input:focus {
+  border-color: hsl(210 70% 50%);
+  box-shadow: 0 0 0 2px hsl(210 70% 50% / 0.2);
+}
+
+.table-editor-add-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid hsl(175 60% 40% / 0.4);
+  border-radius: 6px;
+  background: hsl(175 60% 40% / 0.1);
+  color: hsl(175 80% 55%);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.table-editor-add-btn:hover {
+  background: hsl(175 60% 40% / 0.25);
+  border-color: hsl(175 60% 50%);
+}
+
+.table-editor-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.table-editor-empty {
+  color: hsl(210 20% 45%);
+  font-size: 12px;
+  font-style: italic;
+  text-align: center;
+  padding: 12px 0;
+  margin: 0;
+}
+
+.table-editor-column-row {
+  background: hsl(220 30% 13%);
+  border: 1px solid hsl(210 30% 22%);
+  border-radius: 10px;
+  padding: 8px;
+  transition: border-color 0.15s ease;
+}
+
+.table-editor-column-row:hover {
+  border-color: hsl(210 50% 35%);
+}
+
+.table-editor-column-main {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.table-editor-col-name {
+  flex: 1;
+  padding: 5px 8px;
+  background: hsl(220 30% 16%);
+  border: 1px solid hsl(210 25% 25%);
+  border-radius: 6px;
+  color: hsl(0 0% 92%);
+  font-size: 12px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.table-editor-col-name:focus {
+  border-color: hsl(210 70% 50%);
+}
+
+.table-editor-col-type {
+  width: 100px;
+  padding: 5px 6px;
+  background: hsl(220 30% 16%);
+  border: 1px solid hsl(210 25% 25%);
+  border-radius: 6px;
+  color: hsl(175 60% 55%);
+  font-size: 11px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+
+.table-editor-col-type:focus {
+  border-color: hsl(175 60% 50%);
+}
+
+.table-editor-column-flags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.table-editor-flag {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 7px;
+  border: 1px solid hsl(210 25% 25%);
+  border-radius: 5px;
+  background: transparent;
+  color: hsl(210 15% 45%);
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.table-editor-flag:hover {
+  border-color: hsl(210 40% 40%);
+  color: hsl(210 30% 70%);
+}
+
+.table-editor-flag.active.pk {
+  background: hsl(45 70% 45% / 0.2);
+  border-color: hsl(45 70% 50% / 0.5);
+  color: hsl(45 80% 60%);
+}
+
+.table-editor-flag.active.fk {
+  background: hsl(200 60% 45% / 0.2);
+  border-color: hsl(200 60% 50% / 0.5);
+  color: hsl(200 70% 60%);
+}
+
+.table-editor-flag.active.nn {
+  background: hsl(0 50% 45% / 0.2);
+  border-color: hsl(0 50% 50% / 0.5);
+  color: hsl(0 60% 60%);
+}
+
+.table-editor-delete-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 3px 6px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: hsl(0 30% 45%);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.table-editor-delete-col:hover {
+  background: hsl(0 50% 35% / 0.3);
+  border-color: hsl(0 50% 50% / 0.4);
+  color: hsl(0 60% 60%);
+}
+
+.table-editor-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.table-editor-cancel {
+  padding: 7px 16px;
+  border: 1px solid hsl(210 25% 25%);
+  border-radius: 8px;
+  background: transparent;
+  color: hsl(210 20% 65%);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.table-editor-cancel:hover {
+  background: hsl(210 25% 18%);
+  color: white;
+}
+
+.table-editor-save {
+  padding: 7px 20px;
+  border: none;
+  border-radius: 8px;
+  background: hsl(210 70% 45%);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Inter', sans-serif;
+  box-shadow: 0 2px 8px hsl(210 70% 45% / 0.4);
+}
+
+.table-editor-save:hover {
+  background: hsl(210 70% 55%);
+  box-shadow: 0 4px 12px hsl(210 70% 45% / 0.5);
+}
+
+/* Scrollbar for table editor */
+.table-editor-panel::-webkit-scrollbar {
+  width: 6px;
+}
+
+.table-editor-panel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.table-editor-panel::-webkit-scrollbar-thumb {
+  background: hsl(210 25% 30%);
+  border-radius: 3px;
+}
+
+.table-editor-panel::-webkit-scrollbar-thumb:hover {
+  background: hsl(210 25% 40%);
+}
+

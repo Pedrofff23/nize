@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Project, ProjectModule } from '@/types/project';
+import { Project, ProjectModule, ProjectToolSlug, AVAILABLE_TOOLS, ALL_TOOL_SLUGS } from '@/types/project';
 import { useCreateProject, useUpdateProject, ModuleInput } from '@/hooks/useProjects';
+import { useClients } from '@/hooks/useClients';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Plus, Trash2, X } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, X, User, Building2, Check as CheckIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -44,6 +45,17 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
       status: m.status,
     })) ?? []
   );
+  const [clientId, setClientId] = useState<string>(project?.client_id ?? '');
+  const [enabledTools, setEnabledTools] = useState<ProjectToolSlug[]>(
+    project?.enabled_tools ?? [...ALL_TOOL_SLUGS]
+  );
+  const { data: clientsList } = useClients();
+
+  const toggleTool = (slug: ProjectToolSlug) => {
+    setEnabledTools(prev =>
+      prev.includes(slug) ? prev.filter(s => s !== slug) : [...prev, slug]
+    );
+  };
 
   const addModule = () => {
     setModules([...modules, { name: '', description: '', status: 'pendente' }]);
@@ -67,6 +79,8 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
       price: parseFloat(price) || 0,
       status,
       deadline: deadline ? format(deadline, 'yyyy-MM-dd') : null,
+      client_id: (clientId && clientId !== 'none') ? clientId : null,
+      enabled_tools: enabledTools,
     };
 
     if (project) {
@@ -113,6 +127,34 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
             rows={3}
             className="bg-muted border-border resize-none"
           />
+        </div>
+
+        <div className="md:col-span-2 space-y-2">
+          <Label>Cliente</Label>
+          <Select value={clientId} onValueChange={setClientId}>
+            <SelectTrigger className="bg-muted border-border">
+              <SelectValue placeholder="Selecionar cliente (opcional)" />
+            </SelectTrigger>
+            <SelectContent className="bg-card border-border max-h-60">
+              <SelectItem value="none">Nenhum cliente</SelectItem>
+              {clientsList?.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  <span className="flex items-center gap-2">
+                    {c.type === 'pf'
+                      ? <User className="w-3.5 h-3.5 text-sky-400 inline" />
+                      : <Building2 className="w-3.5 h-3.5 text-amber-400 inline" />}
+                    {c.type === 'pj' ? (c.fantasy_name || c.company_name || c.name) : c.name}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {clientId && clientId !== 'none' && (
+            <Button type="button" variant="ghost" size="sm" onClick={() => setClientId('')}
+              className="text-muted-foreground hover:text-foreground text-xs">
+              <X className="w-3 h-3 mr-1" /> Remover cliente
+            </Button>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -174,6 +216,52 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
               <SelectItem value="concluido">Concluído</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+      </div>
+
+      {/* Tool Selection */}
+      <div className="space-y-3">
+        <div>
+          <Label className="text-base">Ferramentas do Projeto</Label>
+          <p className="text-xs text-muted-foreground mt-0.5">Selecione quais ferramentas estarão disponíveis neste projeto</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          {AVAILABLE_TOOLS.map((tool) => {
+            const isActive = enabledTools.includes(tool.slug);
+            const Icon = tool.icon;
+            return (
+              <button
+                key={tool.slug}
+                type="button"
+                onClick={() => toggleTool(tool.slug)}
+                className={cn(
+                  'relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 text-center group',
+                  isActive
+                    ? 'border-primary bg-primary/10 shadow-[0_0_15px_rgba(var(--primary-rgb),0.15)]'
+                    : 'border-border bg-muted/30 opacity-60 hover:opacity-80 hover:border-muted-foreground/30'
+                )}
+              >
+                {isActive && (
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                    <CheckIcon className="w-3 h-3 text-primary-foreground" />
+                  </div>
+                )}
+                <div className={cn(
+                  'w-10 h-10 rounded-xl flex items-center justify-center transition-colors',
+                  isActive ? 'bg-primary/20 text-primary' : 'bg-muted text-muted-foreground'
+                )}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className={cn(
+                    'text-sm font-medium transition-colors',
+                    isActive ? 'text-foreground' : 'text-muted-foreground'
+                  )}>{tool.name}</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">{tool.description}</p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 

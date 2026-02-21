@@ -10,6 +10,8 @@ import { LoginPage } from "@/components/LoginPage";
 import Dashboard from "@/pages/Dashboard";
 import NewProject from "@/pages/NewProject";
 import ProjectDetail from "@/pages/ProjectDetail";
+import Clients from "@/pages/Clients";
+import ClientDetail from "@/pages/ClientDetail";
 import NotFound from "./pages/NotFound";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
@@ -61,6 +63,8 @@ function AppLayout() {
               <Route path="/" element={<Dashboard />} />
               <Route path="/projetos/novo" element={<NewProject />} />
               <Route path="/projetos/:id" element={<ProjectDetail />} />
+              <Route path="/clientes" element={<Clients />} />
+              <Route path="/clientes/:id" element={<ClientDetail />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>

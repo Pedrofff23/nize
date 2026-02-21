@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { AppBreadcrumb } from '@/components/AppBreadcrumb';
 import {
   useProject,
@@ -28,12 +28,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ProjectModule } from '@/types/project';
+import { ProjectModule, AVAILABLE_TOOLS, ProjectToolSlug } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { TaskBoard } from '@/components/modules/TaskBoard';
 import { ProjectAgenda } from '@/components/modules/ProjectAgenda';
 import { ProjectBudget } from '@/components/modules/ProjectBudget';
+import { ProjectNotes } from '@/components/modules/ProjectNotes';
+import { ProjectFlowchart } from '@/components/modules/ProjectFlowchart';
 import {
   CalendarDays,
   DollarSign,
@@ -75,9 +77,8 @@ function ModuleRow({ module, projectId }: { module: ProjectModule; projectId: st
     <div className="flex items-start gap-3 p-4 bg-muted/30 border border-border rounded-xl">
       <button
         onClick={cycleStatus}
-        className={`mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 transition-all ${
-          module.status === 'concluido' ? 'bg-primary border-primary' : module.status === 'em_andamento' ? 'border-sky-400' : 'border-muted-foreground/40'
-        }`}
+        className={`mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 transition-all ${module.status === 'concluido' ? 'bg-primary border-primary' : module.status === 'em_andamento' ? 'border-sky-400' : 'border-muted-foreground/40'
+          }`}
         title="Clique para mudar status"
       >
         {module.status === 'concluido' && <Check className="w-3 h-3 text-primary-foreground m-auto" />}
@@ -192,9 +193,29 @@ function FileSection({ projectId }: { projectId: string }) {
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { data: project, isLoading } = useProject(id!);
   const deleteProject = useDeleteProject();
   const createModule = useCreateModule();
+
+  const tabFromUrl = searchParams.get('tab') || 'tasks';
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value }, { replace: true });
+  };
+
+  // Map tool slugs to their tab content components
+  const toolTabContent: Record<ProjectToolSlug, (id: string) => React.ReactNode> = {
+    tasks: (id) => <TaskBoard projectId={id} />,
+    agenda: (id) => <ProjectAgenda projectId={id} />,
+    budget: (id) => <ProjectBudget projectId={id} />,
+    files: (id) => (
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <FileSection projectId={id} />
+      </div>
+    ),
+    notes: (id) => <ProjectNotes projectId={id} />,
+    flowchart: (id) => <ProjectFlowchart projectId={id} />,
+  };
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -246,94 +267,111 @@ export default function ProjectDetail() {
   const doneCount = modules.filter((m) => m.status === 'concluido').length;
   const progress = modules.length > 0 ? Math.round((doneCount / modules.length) * 100) : 0;
 
+  // Filter the available tools to only show enabled ones
+  const enabledTools = project.enabled_tools ?? AVAILABLE_TOOLS.map(t => t.slug);
+  const enabledToolDefs = AVAILABLE_TOOLS.filter(t => enabledTools.includes(t.slug));
+  // Always include 'modules' tab for custom modules
+  const defaultTab = enabledToolDefs.length > 0 ? enabledToolDefs[0].slug : 'modules';
+  const activeTab = enabledTools.includes(tabFromUrl as ProjectToolSlug) || tabFromUrl === 'modules' ? tabFromUrl : defaultTab;
+
+  // Hide the big project header card when inside a tool tab
+  const isToolTab = activeTab !== 'modules';
+
   return (
-    <div className="p-6 space-y-6 max-w-5xl mx-auto">
+    <div className={`p-6 space-y-4 mx-auto ${isToolTab ? 'max-w-full' : 'max-w-5xl'}`}>
       {/* Breadcrumb */}
       <AppBreadcrumb items={[
         { label: 'Projetos', href: '/' },
         { label: project.name },
       ]} />
 
-      {/* Project Header */}
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
-              <StatusBadge status={project.status} size="md" />
-            </div>
-            {project.description && <p className="text-muted-foreground text-sm mt-2">{project.description}</p>}
+      {/* Compact Header for tool tabs */}
+      {isToolTab && (
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <h1 className="text-lg font-bold text-foreground truncate">{project.name}</h1>
+            <StatusBadge status={project.status} />
           </div>
           <div className="flex gap-2 flex-shrink-0">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="border-border hover:border-primary/40">
-              <Pencil className="w-4 h-4 mr-2" /> Editar
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)} className="border-destructive/40 text-destructive hover:bg-destructive/10">
-              <Trash2 className="w-4 h-4 mr-2" /> Excluir
+            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="border-border hover:border-primary/40 h-8 text-xs">
+              <Pencil className="w-3.5 h-3.5 mr-1.5" /> Editar
             </Button>
           </div>
         </div>
+      )}
 
-        <div className="flex flex-wrap gap-4 text-sm">
-          {project.deadline && (
+      {/* Full Project Header — only on modules tab */}
+      {!isToolTab && (
+        <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
+                <StatusBadge status={project.status} size="md" />
+              </div>
+              {project.description && <p className="text-muted-foreground text-sm mt-2">{project.description}</p>}
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="border-border hover:border-primary/40">
+                <Pencil className="w-4 h-4 mr-2" /> Editar
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)} className="border-destructive/40 text-destructive hover:bg-destructive/10">
+                <Trash2 className="w-4 h-4 mr-2" /> Excluir
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-4 text-sm">
+            {project.deadline && (
+              <div className="flex items-center gap-2 text-muted-foreground">
+                <CalendarDays className="w-4 h-4 text-primary" />
+                Prazo: <span className="text-foreground font-medium">{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
+              </div>
+            )}
             <div className="flex items-center gap-2 text-muted-foreground">
-              <CalendarDays className="w-4 h-4 text-primary" />
-              Prazo: <span className="text-foreground font-medium">{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
+              <DollarSign className="w-4 h-4 text-primary" />
+              Valor: <span className="text-foreground font-medium">{(project.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+            </div>
+          </div>
+
+          {modules.length > 0 && (
+            <div className="space-y-1.5">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{doneCount}/{modules.length} módulos customizados concluídos</span>
+                <span>{progress}%</span>
+              </div>
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div className="h-full gradient-teal rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+              </div>
             </div>
           )}
-          <div className="flex items-center gap-2 text-muted-foreground">
-            <DollarSign className="w-4 h-4 text-primary" />
-            Valor: <span className="text-foreground font-medium">{(project.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-          </div>
         </div>
-
-        {modules.length > 0 && (
-          <div className="space-y-1.5">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{doneCount}/{modules.length} módulos customizados concluídos</span>
-              <span>{progress}%</span>
-            </div>
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div className="h-full gradient-teal rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
-            </div>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Tabs */}
-      <Tabs defaultValue="tasks" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
         <TabsList className="bg-card border border-border h-auto p-1 flex flex-wrap gap-1">
-          <TabsTrigger value="tasks" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
-            Tarefas
-          </TabsTrigger>
-          <TabsTrigger value="agenda" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
-            Agenda
-          </TabsTrigger>
-          <TabsTrigger value="budget" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
-            Orçamento
-          </TabsTrigger>
+          {enabledToolDefs.map((tool) => (
+            <TabsTrigger
+              key={tool.slug}
+              value={tool.slug}
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm flex items-center gap-1.5"
+            >
+              <tool.icon className="w-3.5 h-3.5" />
+              {tool.name}
+            </TabsTrigger>
+          ))}
           <TabsTrigger value="modules" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
             Módulos
           </TabsTrigger>
-          <TabsTrigger value="files" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
-            Arquivos
-          </TabsTrigger>
         </TabsList>
 
-        {/* Tarefas */}
-        <TabsContent value="tasks">
-          <TaskBoard projectId={id!} />
-        </TabsContent>
-
-        {/* Agenda */}
-        <TabsContent value="agenda">
-          <ProjectAgenda projectId={id!} />
-        </TabsContent>
-
-        {/* Orçamento */}
-        <TabsContent value="budget">
-          <ProjectBudget projectId={id!} />
-        </TabsContent>
+        {/* Dynamic tool tabs */}
+        {enabledToolDefs.map((tool) => (
+          <TabsContent key={tool.slug} value={tool.slug}>
+            {toolTabContent[tool.slug](id!)}
+          </TabsContent>
+        ))}
 
         {/* Módulos customizados */}
         <TabsContent value="modules">
@@ -376,13 +414,6 @@ export default function ProjectDetail() {
             <div className="space-y-2">
               {modules.map((m) => <ModuleRow key={m.id} module={m} projectId={id!} />)}
             </div>
-          </div>
-        </TabsContent>
-
-        {/* Arquivos */}
-        <TabsContent value="files">
-          <div className="bg-card border border-border rounded-2xl p-6">
-            <FileSection projectId={id!} />
           </div>
         </TabsContent>
       </Tabs>

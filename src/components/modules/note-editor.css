@@ -1,0 +1,336 @@
+/* ─── TipTap Note Editor Styles ─────────────────────────────────────────────── */
+
+.note-editor .tiptap {
+  outline: none;
+  min-height: 300px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: hsl(var(--foreground));
+}
+
+.note-editor .tiptap > * + * {
+  margin-top: 0.5em;
+}
+
+/* Placeholder */
+.note-editor .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  height: 0;
+  opacity: 0.5;
+}
+
+.note-editor .tiptap .is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  height: 0;
+  opacity: 0.4;
+}
+
+/* Headings */
+.note-editor .tiptap h1 {
+  font-size: 2em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 1.5em;
+  margin-bottom: 0.4em;
+  color: hsl(var(--foreground));
+}
+
+.note-editor .tiptap h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 1.2em;
+  margin-bottom: 0.3em;
+  color: hsl(var(--foreground));
+}
+
+.note-editor .tiptap h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 1em;
+  margin-bottom: 0.2em;
+  color: hsl(var(--foreground));
+}
+
+/* Paragraphs */
+.note-editor .tiptap p {
+  margin: 0;
+  padding: 3px 0;
+}
+
+/* Lists */
+.note-editor .tiptap ul,
+.note-editor .tiptap ol {
+  padding-left: 1.5em;
+}
+
+.note-editor .tiptap ul {
+  list-style-type: disc;
+}
+
+.note-editor .tiptap ol {
+  list-style-type: decimal;
+}
+
+.note-editor .tiptap li {
+  margin: 2px 0;
+}
+
+.note-editor .tiptap li p {
+  margin: 0;
+}
+
+/* Task Lists (To-do) */
+.note-editor .tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.note-editor .tiptap ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0;
+}
+
+.note-editor .tiptap ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.note-editor .tiptap ul[data-type="taskList"] li > label input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid hsl(var(--primary));
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+  background: transparent;
+}
+
+.note-editor .tiptap ul[data-type="taskList"] li > label input[type="checkbox"]:checked {
+  background: hsl(var(--primary));
+}
+
+.note-editor .tiptap ul[data-type="taskList"] li > label input[type="checkbox"]:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 700;
+  color: hsl(var(--primary-foreground));
+}
+
+.note-editor .tiptap ul[data-type="taskList"] li[data-checked="true"] > div > p {
+  text-decoration: line-through;
+  color: hsl(var(--muted-foreground));
+}
+
+.note-editor .tiptap ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+/* Blockquotes */
+.note-editor .tiptap blockquote {
+  border-left: 3px solid hsl(var(--primary));
+  padding-left: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+
+/* Code blocks */
+.note-editor .tiptap pre {
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-size: 0.875em;
+  overflow-x: auto;
+}
+
+.note-editor .tiptap pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Inline code */
+.note-editor .tiptap code {
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.875em;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+/* Horizontal Rule */
+.note-editor .tiptap hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 1.5em 0;
+}
+
+/* Highlight */
+.note-editor .tiptap mark {
+  background-color: hsl(var(--primary) / 0.25);
+  border-radius: 2px;
+  padding: 1px 2px;
+}
+
+/* ─── Editor Toolbar ────────────────────────────────────────────────────────── */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid hsl(var(--border));
+  flex-wrap: wrap;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: hsl(var(--border));
+  margin: 0 6px;
+}
+
+.editor-toolbar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.editor-toolbar button:hover {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+.editor-toolbar button.is-active {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
+}
+
+/* ─── Slash Command Menu ─────────────────────────────────────────────────── */
+.slash-command-menu {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  padding: 6px;
+  width: 280px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+.slash-command-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.slash-command-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.slash-command-menu::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 2px;
+}
+
+.slash-command-label {
+  padding: 6px 10px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: hsl(var(--muted-foreground));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.slash-command-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+
+.slash-command-item:hover,
+.slash-command-item.is-selected {
+  background: hsl(var(--muted));
+}
+
+.slash-command-item-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
+  font-size: 14px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.slash-command-item-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.slash-command-item-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}
+
+.slash-command-item-desc {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  margin-top: 1px;
+}
+
+.slash-command-item-shortcut {
+  font-size: 11px;
+  color: hsl(var(--muted-foreground));
+  font-family: monospace;
+  flex-shrink: 0;
+}

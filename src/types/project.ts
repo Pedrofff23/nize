@@ -1,3 +1,34 @@
+import { Client } from './client';
+import {
+  CheckSquare,
+  CalendarDays,
+  DollarSign,
+  FolderOpen,
+  FileEdit,
+  GitBranch,
+  LucideIcon,
+} from 'lucide-react';
+
+export type ProjectToolSlug = 'tasks' | 'agenda' | 'budget' | 'files' | 'notes' | 'flowchart';
+
+export interface ToolDefinition {
+  slug: ProjectToolSlug;
+  name: string;
+  description: string;
+  icon: LucideIcon;
+}
+
+export const AVAILABLE_TOOLS: ToolDefinition[] = [
+  { slug: 'tasks', name: 'Tarefas', description: 'Board kanban para gerenciar tarefas', icon: CheckSquare },
+  { slug: 'agenda', name: 'Agenda', description: 'Calendário de eventos e prazos', icon: CalendarDays },
+  { slug: 'budget', name: 'Orçamento', description: 'Controle financeiro do projeto', icon: DollarSign },
+  { slug: 'files', name: 'Arquivos', description: 'Biblioteca de arquivos do projeto', icon: FolderOpen },
+  { slug: 'notes', name: 'Notas', description: 'Editor de notas estilo Notion', icon: FileEdit },
+  { slug: 'flowchart', name: 'Fluxograma', description: 'Board de fluxogramas visuais', icon: GitBranch },
+];
+
+export const ALL_TOOL_SLUGS: ProjectToolSlug[] = AVAILABLE_TOOLS.map(t => t.slug);
+
 export interface Project {
   id: string;
   name: string;
@@ -5,6 +36,9 @@ export interface Project {
   price: number;
   status: 'ativo' | 'concluido' | 'pausado';
   description: string | null;
+  client_id: string | null;
+  client?: Client | null;
+  enabled_tools: ProjectToolSlug[];
   created_at: string;
   updated_at: string;
   modules?: ProjectModule[];
