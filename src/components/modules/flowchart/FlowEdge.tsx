@@ -6,6 +6,7 @@ interface FlowEdgeProps {
     nodes: FlowNode[];
     selected: boolean;
     onClick: (e: React.MouseEvent, id: string) => void;
+    onDoubleClick?: (e: React.MouseEvent, id: string) => void;
 }
 
 function getBezierPath(
@@ -51,7 +52,7 @@ function getArrowPoints(tx: number, ty: number, tp: string): string {
     }
 }
 
-export function FlowEdgeComponent({ edge, nodes, selected, onClick }: FlowEdgeProps) {
+export function FlowEdgeComponent({ edge, nodes, selected, onClick, onDoubleClick }: FlowEdgeProps) {
     const sourceNode = nodes.find(n => n.id === edge.source);
     const targetNode = nodes.find(n => n.id === edge.target);
 
@@ -74,7 +75,11 @@ export function FlowEdgeComponent({ edge, nodes, selected, onClick }: FlowEdgePr
     const strokeDasharray = edge.style === 'dashed' ? '8 4' : edge.style === 'dotted' ? '3 3' : undefined;
 
     return (
-        <g className={`flowchart-edge ${selected ? 'selected' : ''}`} onClick={(e) => onClick(e, edge.id)}>
+        <g
+            className={`flowchart-edge ${selected ? 'selected' : ''}`}
+            onClick={(e) => onClick(e, edge.id)}
+            onDoubleClick={(e) => onDoubleClick?.(e, edge.id)}
+        >
             {/* Hit area */}
             <path className="edge-hit-area" d={path} />
 

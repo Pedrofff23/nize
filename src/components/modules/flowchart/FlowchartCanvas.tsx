@@ -58,6 +58,7 @@ export function FlowchartCanvas({ initialData, onSave }: FlowchartCanvasProps) {
         clearSelection,
         setViewport,
         toggleGridSnap,
+        updateEdge,
     } = useFlowchartState(initialData as any);
 
     // ─── Auto-save (debounced) ─────────────────────────────────────────────
@@ -115,6 +116,9 @@ export function FlowchartCanvas({ initialData, onSave }: FlowchartCanvasProps) {
     const [editingNode, setEditingNode] = useState<string | null>(null);
     const [editValue, setEditValue] = useState('');
     const [editingTable, setEditingTable] = useState<string | null>(null);
+
+    const [editingEdge, setEditingEdge] = useState<string | null>(null);
+    const [editEdgeValue, setEditEdgeValue] = useState('');
 
     // ─── SVG Coordinate Transform ────────────────────────────────────────────
 
@@ -353,6 +357,21 @@ export function FlowchartCanvas({ initialData, onSave }: FlowchartCanvasProps) {
         selectEdge(id, e.shiftKey);
     }, [selectEdge]);
 
+    const handleEdgeDoubleClick = useCallback((e: React.MouseEvent, id: string) => {
+        e.stopPropagation();
+        const edge = state.edges.find(e => e.id === id);
+        if (!edge) return;
+        setEditingEdge(id);
+        setEditEdgeValue(edge.label || '');
+    }, [state.edges]);
+
+    const finishEdgeEdit = useCallback(() => {
+        if (editingEdge) {
+            updateEdge(editingEdge, { label: editEdgeValue.trim() });
+        }
+        setEditingEdge(null);
+    }, [editingEdge, editEdgeValue, updateEdge]);
+
     // ─── Zoom ─────────────────────────────────────────────────────────────────
 
     const handleWheel = useCallback((e: React.WheelEvent) => {
@@ -437,6 +456,22 @@ export function FlowchartCanvas({ initialData, onSave }: FlowchartCanvasProps) {
     const editNode = editingNode ? state.nodes.find(n => n.id === editingNode) : null;
     const editTableNode = editingTable ? state.nodes.find(n => n.id === editingTable) : null;
 
+    // Get editing edge position
+    const editEdgeObj = editingEdge ? state.edges.find(e => e.id === editingEdge) : null;
+    let editEdgePos: Point | null = null;
+    if (editEdgeObj) {
+        const sourceNode = state.nodes.find(n => n.id === editEdgeObj.source);
+        const targetNode = state.nodes.find(n => n.id === editEdgeObj.target);
+        if (sourceNode && targetNode) {
+            const sp = getPortPoint(sourceNode, editEdgeObj.sourcePort);
+            const tp = getPortPoint(targetNode, editEdgeObj.targetPort);
+            editEdgePos = {
+                x: (sp.x + tp.x) / 2,
+                y: (sp.y + tp.y) / 2
+            };
+        }
+    }
+
     return (
         <div className="flowchart-wrapper" ref={wrapperRef}>
             <CanvasToolbar
@@ -494,7 +529,7 @@ export function FlowchartCanvas({ initialData, onSave }: FlowchartCanvasProps) {
                     y={-10000}
                     width={20000}
                     height={20000}
-                    fill="hsl(190 25% 6%)"
+                    fill="transparent"
                 />
 
                 {/* Viewport transform group */}
@@ -519,6 +554,7 @@ export function FlowchartCanvas({ initialData, onSave }: FlowchartCanvasProps) {
                             nodes={state.nodes}
                             selected={state.selectedEdgeIds.includes(edge.id)}
                             onClick={handleEdgeClick}
+                            onDoubleClick={handleEdgeDoubleClick}
                         />
                     ))}
 
@@ -584,6 +620,31 @@ export function FlowchartCanvas({ initialData, onSave }: FlowchartCanvasProps) {
                         top: Math.max(12, editTableNode.position.y * state.viewport.zoom + state.viewport.panY),
                     }}
                 />
+            )}
+
+            {/* Inline Edge Edit */}
+            {editEdgeObj && editEdgePos && (
+                <div
+                    className="absolute z-20 pointer-events-auto shadow-2xl"
+                    style={{
+                        left: editEdgePos.x * state.viewport.zoom + state.viewport.panX - 60,
+                        top: editEdgePos.y * state.viewport.zoom + state.viewport.panY - 14,
+                    }}
+                >
+                    <input
+                        type="text"
+                        value={editEdgeValue}
+                        onChange={(e) => setEditEdgeValue(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') finishEdgeEdit();
+                            if (e.key === 'Escape') setEditingEdge(null);
+                        }}
+                        onBlur={finishEdgeEdit}
+                        autoFocus
+                        style={{ width: 120 }}
+                        className="bg-background/80 backdrop-blur-md border border-primary/50 rounded-md text-foreground text-xs font-medium px-2 py-1 text-center outline-none focus:ring-2 focus:ring-primary/50 shadow-lg"
+                    />
+                </div>
             )}
         </div>
     );

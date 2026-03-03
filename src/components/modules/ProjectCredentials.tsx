@@ -97,57 +97,60 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
 
             {/* Search */}
             {(credentials?.length ?? 0) > 0 && (
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+                <div className="relative group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 transition-colors group-focus-within:text-primary" />
                     <Input
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Buscar credenciais..."
-                        className="bg-card/50 border-border pl-10 h-10 rounded-xl"
+                        className="bg-card/40 backdrop-blur-md border border-white/10 dark:border-white/5 pl-10 h-10 rounded-xl focus-visible:ring-1 focus-visible:ring-primary/50 transition-all shadow-sm"
                     />
                 </div>
             )}
 
             {/* New Credential Form */}
             {adding && (
-                <div className="bg-card/80 backdrop-blur-sm border border-primary/30 rounded-2xl p-5 space-y-3 shadow-lg shadow-primary/5">
-                    <Input
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        placeholder="Título * (ex: Painel Admin, API Gateway...)"
-                        className="bg-background/50 border-border h-9 text-sm font-medium"
-                        autoFocus
-                    />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Usuário / Email" className="bg-background/50 border-border h-9 text-sm" />
-                        <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" type="password" className="bg-background/50 border-border h-9 text-sm" />
-                    </div>
-                    <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL (https://...)" className="bg-background/50 border-border h-9 text-sm" />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <select
-                            value={category}
-                            onChange={(e) => setCategory(e.target.value)}
-                            className="w-full bg-background/50 border border-border rounded-md h-9 text-sm px-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/50"
-                        >
-                            <option value="geral">Geral</option>
-                            <option value="hosting">Hosting</option>
-                            <option value="api">API</option>
-                            <option value="database">Database</option>
-                            <option value="email">Email</option>
-                            <option value="social">Social</option>
-                            <option value="dominio">Domínio</option>
-                            <option value="servidor">Servidor</option>
-                            <option value="outro">Outro</option>
-                        </select>
-                        <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Observações..." className="bg-background/50 border-border h-9 text-sm" />
-                    </div>
-                    <div className="flex gap-2 pt-1">
-                        <Button onClick={handleAdd} size="sm" className="gradient-teal text-primary-foreground hover:opacity-90" disabled={createCred.isPending}>
-                            {createCred.isPending ? 'Salvando...' : 'Adicionar'}
-                        </Button>
-                        <Button onClick={() => setAdding(false)} size="sm" variant="outline" className="border-border">
-                            Cancelar
-                        </Button>
+                <div className="bg-card/40 backdrop-blur-xl border border-white/10 dark:border-white/5 rounded-2xl p-6 space-y-4 shadow-2xl relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-transparent opacity-50 pointer-events-none" />
+                    <div className="relative z-10 space-y-4">
+                        <Input
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="Título * (ex: Painel Admin, API Gateway...)"
+                            className="bg-background/50 border-white/10 dark:border-white/5 h-10 text-sm font-medium focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg"
+                            autoFocus
+                        />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Usuário / Email" className="bg-background/50 border-white/10 dark:border-white/5 h-10 text-sm focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg" />
+                            <Input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Senha" type="password" className="bg-background/50 border-white/10 dark:border-white/5 h-10 text-sm focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg" />
+                        </div>
+                        <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="URL (https://...)" className="bg-background/50 border-white/10 dark:border-white/5 h-10 text-sm focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg" />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                className="w-full bg-background/50 border border-white/10 dark:border-white/5 rounded-lg h-10 text-sm px-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all shadow-sm"
+                            >
+                                <option value="geral">Geral</option>
+                                <option value="hosting">Hosting</option>
+                                <option value="api">API</option>
+                                <option value="database">Database</option>
+                                <option value="email">Email</option>
+                                <option value="social">Social</option>
+                                <option value="dominio">Domínio</option>
+                                <option value="servidor">Servidor</option>
+                                <option value="outro">Outro</option>
+                            </select>
+                            <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Observações..." className="bg-background/50 border-white/10 dark:border-white/5 h-10 text-sm focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg" />
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                            <Button onClick={handleAdd} size="sm" className="gradient-teal text-primary-foreground hover:opacity-90 shadow-[0_0_15px_rgba(20,184,166,0.3)] transition-all rounded-lg font-medium tracking-tight" disabled={createCred.isPending}>
+                                {createCred.isPending ? 'Salvando...' : 'Adicionar Credencial'}
+                            </Button>
+                            <Button onClick={() => setAdding(false)} size="sm" variant="outline" className="border-white/10 dark:border-white/5 hover:bg-white/5 rounded-lg transition-all font-medium">
+                                Cancelar
+                            </Button>
+                        </div>
                     </div>
                 </div>
             )}
@@ -171,12 +174,22 @@ export function ProjectCredentials({ projectId }: ProjectCredentialsProps) {
                     ))}
                 </div>
             ) : !adding ? (
-                <div className="text-center py-16 border border-dashed border-border/50 rounded-2xl bg-card/20">
-                    <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                        <KeyRound className="w-8 h-8 text-primary/50" />
+                <div className="text-center py-20 border border-white/5 rounded-2xl bg-card/40 backdrop-blur-xl shadow-2xl relative overflow-hidden transform transition-all hover:scale-[1.01] duration-500">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-primary/20 rounded-full blur-[100px] opacity-40 pointer-events-none mix-blend-screen" />
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto mb-5 border border-primary/20 shadow-inner relative z-10 transition-transform duration-500 hover:rotate-12">
+                        <KeyRound className="w-10 h-10 text-primary/80" />
                     </div>
-                    <p className="text-muted-foreground text-sm">Nenhuma credencial neste projeto ainda.</p>
-                    <p className="text-muted-foreground/60 text-xs mt-1">Clique em "Nova Credencial" para adicionar.</p>
+                    <p className="text-foreground font-bold text-xl tracking-tight relative z-10">Cofre de Credenciais Vazio</p>
+                    <p className="text-muted-foreground/80 font-medium text-sm mt-2 relative z-10 max-w-sm mx-auto">
+                        Guarde as chaves de acesso, senhas e configurações de banco de dados do seu projeto de forma segura.
+                    </p>
+                    <Button
+                        onClick={() => setAdding(true)}
+                        className="mt-6 gradient-teal text-primary-foreground hover:opacity-90 shadow-[0_0_20px_rgba(20,184,166,0.2)] hover:shadow-[0_0_30px_rgba(20,184,166,0.4)] transition-all rounded-xl font-semibold relative z-10"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Adicionar a primeira
+                    </Button>
                 </div>
             ) : null}
         </div>

@@ -76,188 +76,197 @@ export function CredentialCard({ credential, onUpdate, onDelete }: CredentialCar
 
     if (editing) {
         return (
-            <div className="bg-card/80 backdrop-blur-sm border border-primary/30 rounded-2xl p-5 space-y-3 shadow-lg shadow-primary/5 transition-all duration-300">
-                <Input
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    placeholder="Título *"
-                    className="bg-background/50 border-border h-9 text-sm font-medium"
-                />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
-                        <Input
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            placeholder="Usuário / Email"
-                            className="bg-background/50 border-border h-9 text-sm pl-9"
-                        />
-                    </div>
-                    <div className="relative">
-                        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
-                        <Input
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Senha"
-                            type="password"
-                            className="bg-background/50 border-border h-9 text-sm pl-9"
-                        />
-                    </div>
-                </div>
-                <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/50" />
+            <div className="bg-card/40 backdrop-blur-xl border border-white/10 dark:border-white/5 rounded-2xl p-6 space-y-4 shadow-2xl relative overflow-hidden transition-all duration-300">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-transparent opacity-50 pointer-events-none" />
+                <div className="relative z-10 space-y-4">
                     <Input
-                        value={url}
-                        onChange={(e) => setUrl(e.target.value)}
-                        placeholder="URL (https://...)"
-                        className="bg-background/50 border-border h-9 text-sm pl-9"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        placeholder="Título *"
+                        className="bg-background/50 border-white/10 dark:border-white/5 h-10 text-sm font-medium focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg"
                     />
-                </div>
-                <div className="relative">
-                    <Tag className="absolute left-3 top-3 w-3.5 h-3.5 text-muted-foreground/50" />
-                    <select
-                        value={category}
-                        onChange={(e) => setCategory(e.target.value)}
-                        className="w-full bg-background/50 border border-border rounded-md h-9 text-sm pl-9 pr-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/50"
-                    >
-                        <option value="geral">Geral</option>
-                        <option value="hosting">Hosting</option>
-                        <option value="api">API</option>
-                        <option value="database">Database</option>
-                        <option value="email">Email</option>
-                        <option value="social">Social</option>
-                        <option value="dominio">Domínio</option>
-                        <option value="servidor">Servidor</option>
-                        <option value="outro">Outro</option>
-                    </select>
-                </div>
-                <Textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Observações..."
-                    rows={2}
-                    className="bg-background/50 border-border text-sm resize-none"
-                />
-                <div className="flex gap-2 pt-1">
-                    <Button onClick={handleSave} size="sm" className="gradient-teal text-primary-foreground hover:opacity-90">
-                        <Check className="w-3.5 h-3.5 mr-1.5" /> Salvar
-                    </Button>
-                    <Button onClick={handleCancel} size="sm" variant="outline" className="border-border">
-                        <X className="w-3.5 h-3.5 mr-1.5" /> Cancelar
-                    </Button>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="relative group">
+                            <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 transition-colors group-focus-within:text-primary" />
+                            <Input
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                placeholder="Usuário / Email"
+                                className="bg-background/50 border-white/10 dark:border-white/5 h-10 text-sm pl-9 focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg"
+                            />
+                        </div>
+                        <div className="relative group">
+                            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 transition-colors group-focus-within:text-primary" />
+                            <Input
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="Senha"
+                                type="password"
+                                className="bg-background/50 border-white/10 dark:border-white/5 h-10 text-sm pl-9 focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg"
+                            />
+                        </div>
+                    </div>
+                    <div className="relative group">
+                        <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 transition-colors group-focus-within:text-primary" />
+                        <Input
+                            value={url}
+                            onChange={(e) => setUrl(e.target.value)}
+                            placeholder="URL (https://...)"
+                            className="bg-background/50 border-white/10 dark:border-white/5 h-10 text-sm pl-9 focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg"
+                        />
+                    </div>
+                    <div className="relative group">
+                        <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 transition-colors group-focus-within:text-primary" />
+                        <select
+                            value={category}
+                            onChange={(e) => setCategory(e.target.value)}
+                            className="w-full bg-background/50 border border-white/10 dark:border-white/5 rounded-lg h-10 text-sm pl-9 pr-3 text-foreground appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all shadow-sm"
+                        >
+                            <option value="geral">Geral</option>
+                            <option value="hosting">Hosting</option>
+                            <option value="api">API</option>
+                            <option value="database">Database</option>
+                            <option value="email">Email</option>
+                            <option value="social">Social</option>
+                            <option value="dominio">Domínio</option>
+                            <option value="servidor">Servidor</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <Textarea
+                        value={notes}
+                        onChange={(e) => setNotes(e.target.value)}
+                        placeholder="Observações..."
+                        rows={2}
+                        className="bg-background/50 border-white/10 dark:border-white/5 text-sm resize-none focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg"
+                    />
+                    <div className="flex gap-2 pt-2">
+                        <Button onClick={handleSave} size="sm" className="gradient-teal text-primary-foreground hover:opacity-90 shadow-[0_0_15px_rgba(20,184,166,0.3)] transition-all rounded-lg font-medium">
+                            <Check className="w-4 h-4 mr-1.5" /> Salvar Alterações
+                        </Button>
+                        <Button onClick={handleCancel} size="sm" variant="outline" className="border-white/10 dark:border-white/5 hover:bg-white/5 rounded-lg transition-all font-medium">
+                            <X className="w-4 h-4 mr-1.5" /> Cancelar
+                        </Button>
+                    </div>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="group bg-card/60 backdrop-blur-sm border border-border/50 rounded-2xl p-5 hover:border-primary/20 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5">
-            {/* Header */}
-            <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 rounded-xl gradient-teal flex items-center justify-center flex-shrink-0 shadow-md">
-                        <KeyRound className="w-4 h-4 text-primary-foreground" />
+        <div className="group bg-card/40 backdrop-blur-xl border border-white/10 dark:border-white/5 rounded-2xl p-5 hover:border-primary/30 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 hover:shadow-primary/10 relative overflow-hidden flex flex-col h-full">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col h-full">
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3 mb-5">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl gradient-teal flex items-center justify-center flex-shrink-0 shadow-md group-hover:scale-105 transition-transform duration-300">
+                            <KeyRound className="w-5 h-5 text-primary-foreground" />
+                        </div>
+                        <div className="min-w-0">
+                            <h3 className="font-semibold text-foreground text-[15px] truncate group-hover:text-primary transition-colors">{credential.title}</h3>
+                            <span className={`inline-flex items-center gap-1.5 text-[10px] uppercase tracking-wider px-2.5 py-0.5 rounded-full border mt-1 shadow-sm font-bold ${badgeClass}`}>
+                                {credential.category}
+                            </span>
+                        </div>
                     </div>
-                    <div className="min-w-0">
-                        <h3 className="font-semibold text-foreground text-sm truncate">{credential.title}</h3>
-                        <span className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full border mt-1 ${badgeClass}`}>
-                            {credential.category}
-                        </span>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setEditing(true)}
+                            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors"
+                        >
+                            <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => onDelete(credential.id)}
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                        </Button>
                     </div>
                 </div>
-                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setEditing(true)}
-                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                    >
-                        <Pencil className="w-3.5 h-3.5" />
-                    </Button>
-                    <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => onDelete(credential.id)}
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                    >
-                        <Trash2 className="w-3.5 h-3.5" />
-                    </Button>
+
+                {/* Fields */}
+                <div className="space-y-2 flex-1">
+                    {credential.username && (
+                        <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-background/30 hover:bg-background/50 border border-transparent hover:border-white/5 transition-all group/field">
+                            <User className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" />
+                            <span className="text-muted-foreground/80 text-xs flex-shrink-0 font-medium">Usuário:</span>
+                            <span className="text-foreground truncate flex-1 font-mono text-xs">{credential.username}</span>
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => copyToClipboard(credential.username!, 'Usuário')}
+                                className="h-6 w-6 text-muted-foreground/50 hover:text-primary opacity-0 group-hover/field:opacity-100 flex-shrink-0 transition-opacity"
+                            >
+                                <Copy className="w-3.5 h-3.5" />
+                            </Button>
+                        </div>
+                    )}
+
+                    {credential.password && (
+                        <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-background/30 hover:bg-background/50 border border-transparent hover:border-white/5 transition-all group/field">
+                            <KeyRound className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" />
+                            <span className="text-muted-foreground/80 text-xs flex-shrink-0 font-medium">Senha:</span>
+                            <span className="text-foreground truncate flex-1 font-mono text-xs">
+                                {showPassword ? credential.password : '••••••••••'}
+                            </span>
+                            <div className="flex items-center gap-1 opacity-0 group-hover/field:opacity-100 transition-opacity flex-shrink-0">
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="h-6 w-6 text-muted-foreground/60 hover:text-foreground hover:bg-white/5 rounded-md"
+                                >
+                                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                                </Button>
+                                <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => copyToClipboard(credential.password!, 'Senha')}
+                                    className="h-6 w-6 text-muted-foreground/60 hover:text-primary hover:bg-primary/10 rounded-md"
+                                >
+                                    <Copy className="w-3.5 h-3.5" />
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+
+                    {credential.url && (
+                        <div className="flex items-center gap-2 text-sm p-2 rounded-lg bg-background/30 hover:bg-background/50 border border-transparent hover:border-white/5 transition-all group/field">
+                            <Globe className="w-4 h-4 text-muted-foreground/60 flex-shrink-0" />
+                            <span className="text-muted-foreground/80 text-xs flex-shrink-0 font-medium">URL:</span>
+                            <a
+                                href={credential.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:text-primary-focus hover:underline truncate flex-1 text-xs transition-colors"
+                            >
+                                {credential.url}
+                            </a>
+                            <Button
+                                size="icon"
+                                variant="ghost"
+                                onClick={() => window.open(credential.url!, '_blank')}
+                                className="h-6 w-6 text-muted-foreground/50 hover:text-primary opacity-0 group-hover/field:opacity-100 flex-shrink-0 transition-opacity"
+                            >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                            </Button>
+                        </div>
+                    )}
+
+                    {credential.notes && (
+                        <div className="flex items-start gap-2 text-sm mt-3 pt-3 border-t border-white/5">
+                            <StickyNote className="w-4 h-4 text-muted-foreground/60 flex-shrink-0 mt-0.5" />
+                            <p className="text-muted-foreground/90 text-xs leading-relaxed">{credential.notes}</p>
+                        </div>
+                    )}
                 </div>
-            </div>
-
-            {/* Fields */}
-            <div className="space-y-2">
-                {credential.username && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <User className="w-3.5 h-3.5 text-muted-foreground/60 flex-shrink-0" />
-                        <span className="text-muted-foreground text-xs flex-shrink-0">Usuário:</span>
-                        <span className="text-foreground truncate flex-1 font-mono text-xs">{credential.username}</span>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => copyToClipboard(credential.username!, 'Usuário')}
-                            className="h-6 w-6 text-muted-foreground/50 hover:text-primary flex-shrink-0"
-                        >
-                            <Copy className="w-3 h-3" />
-                        </Button>
-                    </div>
-                )}
-
-                {credential.password && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <KeyRound className="w-3.5 h-3.5 text-muted-foreground/60 flex-shrink-0" />
-                        <span className="text-muted-foreground text-xs flex-shrink-0">Senha:</span>
-                        <span className="text-foreground truncate flex-1 font-mono text-xs">
-                            {showPassword ? credential.password : '••••••••••'}
-                        </span>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="h-6 w-6 text-muted-foreground/50 hover:text-foreground flex-shrink-0"
-                        >
-                            {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                        </Button>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => copyToClipboard(credential.password!, 'Senha')}
-                            className="h-6 w-6 text-muted-foreground/50 hover:text-primary flex-shrink-0"
-                        >
-                            <Copy className="w-3 h-3" />
-                        </Button>
-                    </div>
-                )}
-
-                {credential.url && (
-                    <div className="flex items-center gap-2 text-sm">
-                        <Globe className="w-3.5 h-3.5 text-muted-foreground/60 flex-shrink-0" />
-                        <span className="text-muted-foreground text-xs flex-shrink-0">URL:</span>
-                        <a
-                            href={credential.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline truncate flex-1 text-xs"
-                        >
-                            {credential.url}
-                        </a>
-                        <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => window.open(credential.url!, '_blank')}
-                            className="h-6 w-6 text-muted-foreground/50 hover:text-primary flex-shrink-0"
-                        >
-                            <ExternalLink className="w-3 h-3" />
-                        </Button>
-                    </div>
-                )}
-
-                {credential.notes && (
-                    <div className="flex items-start gap-2 text-sm mt-2 pt-2 border-t border-border/30">
-                        <StickyNote className="w-3.5 h-3.5 text-muted-foreground/60 flex-shrink-0 mt-0.5" />
-                        <p className="text-muted-foreground text-xs leading-relaxed">{credential.notes}</p>
-                    </div>
-                )}
             </div>
         </div>
     );

@@ -118,29 +118,29 @@ export function ProjectFlowchart({ projectId }: ProjectFlowchartProps) {
             {/* Flowcharts List Sidebar */}
             <div
                 className={`${showCanvas ? 'hidden sm:flex' : 'flex'
-                    } w-full sm:w-72 flex-shrink-0 flex-col bg-card border border-border rounded-2xl overflow-hidden`}
+                    } w-full sm:w-72 flex-shrink-0 flex-col bg-card/40 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-2xl rounded-2xl overflow-hidden transition-all duration-300`}
             >
                 {/* Header */}
-                <div className="p-3 border-b border-border space-y-2">
+                <div className="p-4 border-b border-border/50 space-y-3 bg-gradient-to-b from-background/50 to-transparent">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-semibold text-foreground">Fluxogramas</h3>
+                        <h3 className="text-sm font-semibold tracking-tight text-foreground/90">Fluxogramas</h3>
                         <Button
                             size="sm"
                             variant="ghost"
                             onClick={handleCreate}
                             disabled={createFlowchart.isPending}
-                            className="h-7 w-7 p-0 text-primary hover:bg-primary/10"
+                            className="h-7 w-7 p-0 text-primary hover:bg-primary/20 hover:text-primary transition-colors"
                         >
                             <Plus className="w-4 h-4" />
                         </Button>
                     </div>
-                    <div className="relative">
-                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                    <div className="relative group">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground transition-colors group-focus-within:text-primary" />
                         <Input
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             placeholder="Buscar fluxogramas..."
-                            className="h-8 pl-8 text-xs bg-muted border-border"
+                            className="h-8 pl-8 text-xs bg-background/50 border-white/10 focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-lg"
                         />
                     </div>
                 </div>
@@ -169,14 +169,17 @@ export function ProjectFlowchart({ projectId }: ProjectFlowchartProps) {
                         <button
                             key={fc.id}
                             onClick={() => setSelectedId(fc.id)}
-                            className={`w-full text-left p-3 rounded-xl transition-all group ${fc.id === selectedId
-                                ? 'bg-primary/10 border border-primary/30'
-                                : 'hover:bg-muted/50 border border-transparent'
-                                }`}
+                            className={`w-full text-left p-3 rounded-xl transition-all duration-200 group relative overflow-hidden ${fc.id === selectedId
+                                ? 'bg-primary/10 border-primary/30 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)]'
+                                : 'hover:bg-muted/40 border-transparent hover:border-white/5'
+                                } border`}
                         >
-                            <div className="flex items-start justify-between gap-1">
+                            {fc.id === selectedId && (
+                                <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-transparent opacity-50 pointer-events-none" />
+                            )}
+                            <div className="flex items-start justify-between gap-1 relative z-10">
                                 <p
-                                    className={`text-sm font-medium truncate ${fc.id === selectedId ? 'text-primary' : 'text-foreground'
+                                    className={`text-sm font-medium truncate transition-colors ${fc.id === selectedId ? 'text-primary' : 'text-foreground/80 group-hover:text-foreground'
                                         }`}
                                 >
                                     {fc.title}
@@ -187,12 +190,12 @@ export function ProjectFlowchart({ projectId }: ProjectFlowchartProps) {
                                         setToDelete(fc.id);
                                         setDeleteOpen(true);
                                     }}
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-destructive/10"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 rounded-md hover:bg-destructive/15"
                                 >
-                                    <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                                    <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive transition-colors" />
                                 </button>
                             </div>
-                            <p className="text-[10px] text-muted-foreground mt-1">
+                            <p className="text-[10px] text-muted-foreground/70 mt-1 relative z-10 font-medium">
                                 {fc.updated_at
                                     ? format(new Date(fc.updated_at), "dd MMM yyyy 'às' HH:mm", { locale: ptBR })
                                     : ''}
@@ -205,17 +208,17 @@ export function ProjectFlowchart({ projectId }: ProjectFlowchartProps) {
             {/* Canvas Area */}
             <div
                 className={`${showCanvas ? 'flex' : 'hidden sm:flex'
-                    } flex-1 flex-col bg-card border border-border rounded-2xl overflow-hidden`}
+                    } flex-1 flex-col bg-card/40 backdrop-blur-xl border border-white/10 dark:border-white/5 shadow-2xl rounded-2xl overflow-hidden relative`}
             >
                 {selectedFlowchart ? (
                     <>
                         {/* Header */}
-                        <div className="flex items-center gap-2 p-3 border-b border-border">
+                        <div className="flex items-center gap-3 p-3 lg:p-4 border-b border-white/5 bg-background/20 backdrop-blur-sm relative z-20">
                             <Button
                                 size="icon"
                                 variant="ghost"
                                 onClick={() => setSelectedId(null)}
-                                className="sm:hidden h-8 w-8 text-muted-foreground"
+                                className="sm:hidden h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-white/5 transition-colors"
                             >
                                 <ArrowLeft className="w-4 h-4" />
                             </Button>
@@ -227,12 +230,12 @@ export function ProjectFlowchart({ projectId }: ProjectFlowchartProps) {
                                     onBlur={handleSaveTitle}
                                     onKeyDown={(e) => e.key === 'Enter' && handleSaveTitle()}
                                     autoFocus
-                                    className="h-8 text-lg font-bold bg-transparent border-none px-0 focus-visible:ring-0 text-foreground"
+                                    className="h-8 text-base lg:text-lg font-bold bg-white/5 border-white/10 px-3 focus-visible:ring-1 focus-visible:ring-primary/50 text-foreground rounded-md w-full max-w-sm"
                                 />
                             ) : (
                                 <h2
                                     onClick={() => setEditingTitle(true)}
-                                    className="text-sm font-bold text-foreground cursor-text hover:text-primary transition-colors flex-1 truncate"
+                                    className="text-base lg:text-lg font-semibold text-foreground/90 cursor-text hover:text-primary transition-colors flex-1 truncate px-1"
                                 >
                                     {selectedFlowchart.title}
                                 </h2>
@@ -240,7 +243,9 @@ export function ProjectFlowchart({ projectId }: ProjectFlowchartProps) {
                         </div>
 
                         {/* Canvas */}
-                        <div className="flex-1 overflow-hidden">
+                        <div className="flex-1 overflow-hidden relative">
+                            {/* Inner glow effect for the canvas area */}
+                            <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_60px_rgba(0,0,0,0.2)] dark:shadow-[inset_0_0_60px_rgba(0,0,0,0.4)] z-10 mix-blend-overlay" />
                             <FlowchartCanvas
                                 key={selectedFlowchart.id}
                                 initialData={selectedFlowchart.data}
@@ -249,18 +254,27 @@ export function ProjectFlowchart({ projectId }: ProjectFlowchartProps) {
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center">
-                        <div className="text-center space-y-3">
-                            <GitBranchPlus className="w-12 h-12 text-muted-foreground/30 mx-auto" />
-                            <p className="text-sm text-muted-foreground">
-                                Selecione um fluxograma ou crie um novo
-                            </p>
+                    <div className="flex-1 flex items-center justify-center relative overflow-hidden">
+                        {/* Decorative background gradients for empty state */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] opacity-50 pointer-events-none mix-blend-screen" />
+                        <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-blue-500/20 rounded-full blur-[100px] opacity-40 pointer-events-none mix-blend-screen" />
+                        
+                        <div className="text-center space-y-4 relative z-10 p-8 rounded-2xl bg-card/10 backdrop-blur-md border border-white/5 shadow-2xl max-w-sm transform transition-all hover:scale-105 duration-500">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center mx-auto border border-primary/20 shadow-inner">
+                                <GitBranchPlus className="w-8 h-8 text-primary/80" />
+                            </div>
+                            <div className="space-y-1.5">
+                                <h3 className="text-lg font-semibold text-foreground tracking-tight">Comece a Mapear</h3>
+                                <p className="text-sm text-muted-foreground/80 font-medium">
+                                    Selecione um fluxograma ao lado ou crie um novo para organizar suas ideias.
+                                </p>
+                            </div>
                             <Button
-                                size="sm"
+                                size="default"
                                 onClick={handleCreate}
-                                className="gradient-teal text-primary-foreground hover:opacity-90"
+                                className="gradient-teal text-primary-foreground hover:opacity-90 shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_25px_rgba(20,184,166,0.5)] transition-all rounded-xl font-semibold"
                             >
-                                <Plus className="w-4 h-4 mr-1" /> Novo Fluxograma
+                                <Plus className="w-4 h-4 mr-2" /> Novo Fluxograma
                             </Button>
                         </div>
                     </div>
