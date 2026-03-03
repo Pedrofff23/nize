@@ -1,10 +1,22 @@
-import { useProjects } from '@/hooks/useProjects';
+import { useState } from 'react';
+import { useProjects, useDeleteProject } from '@/hooks/useProjects';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/StatusBadge';
 import { AppBreadcrumb } from '@/components/AppBreadcrumb';
-import { Plus, FolderOpen, CalendarDays, DollarSign, Layers, TrendingUp, User, Building2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Plus, FolderOpen, CalendarDays, DollarSign, Layers, TrendingUp, User, Building2, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -31,6 +43,17 @@ function StatCard({ label, value, icon: Icon, accent }: { label: string; value: 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
+  const deleteProject = useDeleteProject();
+
+  const [projectToDelete, setProjectToDelete] = useState<any>(null);
+  const [confirmName, setConfirmName] = useState('');
+
+  const handleDelete = async () => {
+    if (!projectToDelete) return;
+    await deleteProject.mutateAsync(projectToDelete.id);
+    setProjectToDelete(null);
+    setConfirmName('');
+  };
 
   const total = projects?.length ?? 0;
   const ativos = projects?.filter((p) => p.status === 'ativo').length ?? 0;
@@ -109,7 +132,21 @@ export default function Dashboard() {
                     <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1">
                       {project.name}
                     </h3>
-                    <StatusBadge status={project.status} />
+                    <div className="flex items-center gap-2">
+                      <StatusBadge status={project.status} />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setProjectToDelete(project);
+                          setConfirmName('');
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-2 text-sm text-muted-foreground/80">
@@ -161,6 +198,48 @@ export default function Dashboard() {
           })}
         </div>
       )}
+
+      {/* Delete Dialog */}
+      <AlertDialog open={!!projectToDelete} onOpenChange={(open) => {
+        if (!open) {
+          setProjectToDelete(null);
+          setConfirmName('');
+        }
+      }}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Aviso: Exclusão em Cascata</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground space-y-3">
+              <p>Esta ação é <strong>irreversível</strong>.</p>
+              <p>
+                A exclusão deste projeto apagará definitivamente todos os seus dados vinculados, incluindo
+                <strong> tarefas, colunas, módulos, eventos, notas, finanças, fluxogramas e todos os arquivos armazenados.</strong>
+              </p>
+              <div className="pt-2">
+                <label className="text-sm font-medium text-foreground">
+                  Para confirmar, digite <span className="font-bold select-all">{projectToDelete?.name}</span>:
+                </label>
+                <Input
+                  value={confirmName}
+                  onChange={(e) => setConfirmName(e.target.value)}
+                  className="mt-2"
+                  placeholder="Nome do projeto"
+                />
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={!projectToDelete || confirmName.trim() !== projectToDelete.name.trim()}
+            >
+              Excluir
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

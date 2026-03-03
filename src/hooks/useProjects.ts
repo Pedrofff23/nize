@@ -83,6 +83,17 @@ export function useDeleteProject() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
+      // List all files for the project
+      const { data: files } = await supabase.storage.from('project-files').list(id);
+
+      // Delete all files if any exist
+      if (files && files.length > 0) {
+        const filesToRemove = files.map(f => `${id}/${f.name}`);
+        const { error: storageError } = await supabase.storage.from('project-files').remove(filesToRemove);
+        if (storageError) console.error('Erro ao remover arquivos do projeto:', storageError);
+      }
+
+      // Delete the project (cascade delete handles related DB records)
       const { error } = await supabase.from('projects').delete().eq('id', id);
       if (error) throw error;
     },

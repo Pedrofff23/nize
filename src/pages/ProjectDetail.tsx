@@ -219,6 +219,7 @@ export default function ProjectDetail() {
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [confirmName, setConfirmName] = useState('');
   const [addingModule, setAddingModule] = useState(false);
   const [newModName, setNewModName] = useState('');
   const [newModDesc, setNewModDesc] = useState('');
@@ -427,17 +428,41 @@ export default function ProjectDetail() {
       </Dialog>
 
       {/* Delete Dialog */}
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+      <AlertDialog open={deleteOpen} onOpenChange={(open) => {
+        setDeleteOpen(open);
+        if (!open) setConfirmName('');
+      }}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir projeto?</AlertDialogTitle>
-            <AlertDialogDescription className="text-muted-foreground">
-              Esta ação é irreversível. Todos os dados e arquivos serão excluídos.
+            <AlertDialogTitle className="text-destructive">Aviso: Exclusão em Cascata</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground space-y-3">
+              <p>Esta ação é <strong>irreversível</strong>.</p>
+              <p>
+                A exclusão deste projeto apagará definitivamente todos os seus dados vinculados, incluindo
+                <strong> tarefas, colunas, módulos, eventos, notas, finanças, fluxogramas e todos os arquivos armazenados.</strong>
+              </p>
+              <div className="pt-2">
+                <label className="text-sm font-medium text-foreground">
+                  Para confirmar, digite <span className="font-bold select-all">{project.name}</span>:
+                </label>
+                <Input
+                  value={confirmName}
+                  onChange={(e) => setConfirmName(e.target.value)}
+                  className="mt-2"
+                  placeholder="Nome do projeto"
+                />
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Excluir</AlertDialogAction>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={confirmName.trim() !== project.name.trim()}
+            >
+              Excluir
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
