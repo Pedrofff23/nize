@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, LogOut, Users, ChevronDown, ChevronRight,
-  FolderOpen, ListTodo, CalendarDays, DollarSign, Layers, FileText, KeyRound, Wallet,
+  FolderOpen, ListTodo, CalendarDays, DollarSign, Layers, FileText, KeyRound, Wallet, Settings,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -51,6 +51,7 @@ export function AppSidebar() {
   const isClientsSection = location.pathname.startsWith('/clientes');
   const isCredentialsSection = location.pathname.startsWith('/credenciais');
   const isFinancesSection = location.pathname.startsWith('/financas');
+  const isSettingsSection = location.pathname.startsWith('/configuracoes');
 
   return (
     <Sidebar variant="floating" className="border-none bg-transparent">
@@ -221,6 +222,24 @@ export function AppSidebar() {
                       <div className="flex items-center gap-3">
                         <Wallet className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isFinancesSection ? 'text-primary-foreground' : ''}`} />
                         <span>Finanças</span>
+                      </div>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {/* ── Configurações ────────────────────────────────── */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/configuracoes"
+                      className={`group flex items-center justify-between px-4 py-3 rounded-2xl text-[14px] transition-all duration-300 relative overflow-hidden ${isSettingsSection
+                        ? 'gradient-teal text-primary-foreground font-semibold shadow-lg glow-teal'
+                        : 'text-muted-foreground hover:bg-white/5 hover:text-white font-medium'
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Settings className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isSettingsSection ? 'text-primary-foreground' : ''}`} />
+                        <span>Configurações</span>
                       </div>
                     </NavLink>
                   </SidebarMenuButton>

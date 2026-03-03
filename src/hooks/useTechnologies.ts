@@ -53,6 +53,22 @@ export function useDeleteTechnology() {
     });
 }
 
+export function useUpdateTechnology() {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id, name, color }: { id: string; name: string; color: string }) => {
+            const { error } = await supabase.from('technologies').update({ name, color }).eq('id', id);
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ['technologies'] });
+            qc.invalidateQueries({ queryKey: ['projects'] });
+            toast.success('Tecnologia atualizada!');
+        },
+        onError: () => toast.error('Erro ao atualizar tecnologia.'),
+    });
+}
+
 export function useAddProjectTechnology() {
     const qc = useQueryClient();
     return useMutation({

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Project, ProjectModule, ProjectToolSlug, AVAILABLE_TOOLS, ALL_TOOL_SLUGS, Technology, ProjectTechnology } from '@/types/project';
+import { Project, ProjectModule, ProjectToolSlug, AVAILABLE_TOOLS, ALL_TOOL_SLUGS, Technology, ProjectTechnology, Tag, ProjectTag } from '@/types/project';
 import { useCreateProject, useUpdateProject } from '@/hooks/useProjects';
 import { useClients } from '@/hooks/useClients';
-import { useTechnologies, useCreateTechnology, useAddProjectTechnology, useRemoveProjectTechnology } from '@/hooks/useTechnologies';
+import { useTechnologies, useAddProjectTechnology, useRemoveProjectTechnology } from '@/hooks/useTechnologies';
+import { useTags, useAddProjectTag, useRemoveProjectTag } from '@/hooks/useTags';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,13 +12,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Plus, Trash2, X, User, Building2, Check as CheckIcon, Palette } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, X, User, Building2, Check as CheckIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 interface ProjectFormProps {
-  project?: Project & { project_modules?: ProjectModule[]; project_technologies?: ProjectTechnology[] };
+  project?: Project & { project_modules?: ProjectModule[]; project_technologies?: ProjectTechnology[]; project_tags?: ProjectTag[] };
   onCancel?: () => void;
 }
 
@@ -42,9 +43,11 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
   );
   const { data: clientsList } = useClients();
   const { data: allTechnologies } = useTechnologies();
-  const createTechnology = useCreateTechnology();
   const addProjectTech = useAddProjectTechnology();
   const removeProjectTech = useRemoveProjectTechnology();
+  const { data: allTags } = useTags();
+  const addProjectTag = useAddProjectTag();
+  const removeProjectTag = useRemoveProjectTag();
 
   // Technologies state
   const [selectedTechIds, setSelectedTechIds] = useState<string[]>(
@@ -52,21 +55,24 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
   );
   const [techSearch, setTechSearch] = useState('');
   const [showTechDropdown, setShowTechDropdown] = useState(false);
-  const [newTechName, setNewTechName] = useState('');
-  const [newTechColor, setNewTechColor] = useState('#6366f1');
-  const [showNewTechForm, setShowNewTechForm] = useState(false);
 
-  const TECH_COLORS = [
-    '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
-    '#f97316', '#eab308', '#22c55e', '#14b8a6',
-    '#06b6d4', '#3b82f6', '#64748b', '#a855f7',
-  ];
+  // Tags state
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(
+    project?.project_tags?.map(pt => pt.tag_id) ?? []
+  );
+  const [tagSearch, setTagSearch] = useState('');
+  const [showTagDropdown, setShowTagDropdown] = useState(false);
 
   const filteredTechs = (allTechnologies ?? []).filter(
     t => !selectedTechIds.includes(t.id) && t.name.toLowerCase().includes(techSearch.toLowerCase())
   );
 
+  const filteredTags = (allTags ?? []).filter(
+    t => !selectedTagIds.includes(t.id) && t.name.toLowerCase().includes(tagSearch.toLowerCase())
+  );
+
   const selectedTechs = (allTechnologies ?? []).filter(t => selectedTechIds.includes(t.id));
+  const selectedTags = (allTags ?? []).filter(t => selectedTagIds.includes(t.id));
 
   const handleAddTech = (techId: string) => {
     setSelectedTechIds(prev => [...prev, techId]);
@@ -78,13 +84,14 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
     setSelectedTechIds(prev => prev.filter(id => id !== techId));
   };
 
-  const handleCreateTech = async () => {
-    if (!newTechName.trim()) return;
-    const tech = await createTechnology.mutateAsync({ name: newTechName.trim(), color: newTechColor });
-    setSelectedTechIds(prev => [...prev, tech.id]);
-    setNewTechName('');
-    setNewTechColor('#6366f1');
-    setShowNewTechForm(false);
+  const handleAddTag = (tagId: string) => {
+    setSelectedTagIds(prev => [...prev, tagId]);
+    setTagSearch('');
+    setShowTagDropdown(false);
+  };
+
+  const handleRemoveTag = (tagId: string) => {
+    setSelectedTagIds(prev => prev.filter(id => id !== tagId));
   };
 
   const toggleTool = (slug: ProjectToolSlug) => {
@@ -112,21 +119,28 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
 
     if (project) {
       await updateProject.mutateAsync({ id: project.id, ...projectData });
-      // Sync technologies: remove unlinked, add new links
+      // Sync technologies
       const existingTechIds = project.project_technologies?.map(pt => pt.technology_id) ?? [];
-      const toRemove = existingTechIds.filter(id => !selectedTechIds.includes(id));
-      const toAdd = selectedTechIds.filter(id => !existingTechIds.includes(id));
+      const toRemoveTech = existingTechIds.filter(id => !selectedTechIds.includes(id));
+      const toAddTech = selectedTechIds.filter(id => !existingTechIds.includes(id));
+      // Sync tags
+      const existingTagIds = project.project_tags?.map(pt => pt.tag_id) ?? [];
+      const toRemoveTag = existingTagIds.filter(id => !selectedTagIds.includes(id));
+      const toAddTag = selectedTagIds.filter(id => !existingTagIds.includes(id));
       await Promise.all([
-        ...toRemove.map(tid => removeProjectTech.mutateAsync({ project_id: project.id, technology_id: tid })),
-        ...toAdd.map(tid => addProjectTech.mutateAsync({ project_id: project.id, technology_id: tid })),
+        ...toRemoveTech.map(tid => removeProjectTech.mutateAsync({ project_id: project.id, technology_id: tid })),
+        ...toAddTech.map(tid => addProjectTech.mutateAsync({ project_id: project.id, technology_id: tid })),
+        ...toRemoveTag.map(tid => removeProjectTag.mutateAsync({ project_id: project.id, tag_id: tid })),
+        ...toAddTag.map(tid => addProjectTag.mutateAsync({ project_id: project.id, tag_id: tid })),
       ]);
       onCancel?.();
     } else {
       const created = await createProject.mutateAsync({ ...projectData, modules: [] });
-      // Link technologies to the new project
-      await Promise.all(
-        selectedTechIds.map(tid => addProjectTech.mutateAsync({ project_id: created.id, technology_id: tid }))
-      );
+      // Link technologies and tags to the new project
+      await Promise.all([
+        ...selectedTechIds.map(tid => addProjectTech.mutateAsync({ project_id: created.id, technology_id: tid })),
+        ...selectedTagIds.map(tid => addProjectTag.mutateAsync({ project_id: created.id, tag_id: tid })),
+      ]);
       navigate(`/projetos/${created.id}`);
     }
   };
@@ -313,10 +327,9 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
       <div className="space-y-3">
         <div>
           <Label className="text-base">Tecnologias</Label>
-          <p className="text-xs text-muted-foreground mt-0.5">Selecione ou crie as tecnologias utilizadas neste projeto</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Selecione as tecnologias utilizadas neste projeto</p>
         </div>
 
-        {/* Selected techs as badges */}
         {selectedTechs.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {selectedTechs.map(tech => (
@@ -338,7 +351,6 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
           </div>
         )}
 
-        {/* Search existing techs */}
         <div className="relative">
           <Input
             value={techSearch}
@@ -368,61 +380,77 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
                 ))
               ) : techSearch.trim() ? (
                 <div className="px-3 py-2 text-sm text-muted-foreground">
-                  Nenhuma tecnologia encontrada.
+                  Nenhuma tecnologia encontrada. Crie em Configurações.
                 </div>
               ) : null}
             </div>
           )}
         </div>
+      </div>
 
-        {/* Create new tech inline */}
-        {!showNewTechForm ? (
-          <Button type="button" variant="outline" size="sm" onClick={() => setShowNewTechForm(true)}
-            className="border-primary/40 text-primary hover:bg-primary/10">
-            <Plus className="w-4 h-4 mr-1" /> Criar Tecnologia
-          </Button>
-        ) : (
-          <div className="bg-muted/30 border border-primary/30 rounded-xl p-4 space-y-3">
-            <div className="flex items-center gap-2">
-              <Palette className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">Nova Tecnologia</span>
-            </div>
-            <Input
-              value={newTechName}
-              onChange={(e) => setNewTechName(e.target.value)}
-              placeholder="Nome da tecnologia (ex: React, Node.js)"
-              className="bg-background border-border"
-            />
-            <div className="space-y-1.5">
-              <span className="text-xs text-muted-foreground">Cor</span>
-              <div className="flex flex-wrap gap-2">
-                {TECH_COLORS.map(color => (
-                  <button
-                    key={color}
-                    type="button"
-                    onClick={() => setNewTechColor(color)}
-                    className={cn(
-                      'w-7 h-7 rounded-full transition-all border-2',
-                      newTechColor === color ? 'border-foreground scale-110' : 'border-transparent hover:scale-105'
-                    )}
-                    style={{ backgroundColor: color }}
-                  >
-                    {newTechColor === color && <CheckIcon className="w-3.5 h-3.5 text-white m-auto" />}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button type="button" onClick={handleCreateTech} size="sm" disabled={!newTechName.trim() || createTechnology.isPending}
-                className="gradient-teal text-primary-foreground hover:opacity-90">
-                {createTechnology.isPending ? 'Criando...' : 'Criar'}
-              </Button>
-              <Button type="button" onClick={() => { setShowNewTechForm(false); setNewTechName(''); }} size="sm" variant="outline" className="border-border">
-                Cancelar
-              </Button>
-            </div>
+      {/* Tags */}
+      <div className="space-y-3">
+        <div>
+          <Label className="text-base">Tags</Label>
+          <p className="text-xs text-muted-foreground mt-0.5">Selecione as tags para categorizar este projeto</p>
+        </div>
+
+        {selectedTags.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {selectedTags.map(tag => (
+              <span
+                key={tag.id}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white transition-all hover:opacity-80"
+                style={{ backgroundColor: tag.color }}
+              >
+                {tag.name}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTag(tag.id)}
+                  className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
           </div>
         )}
+
+        <div className="relative">
+          <Input
+            value={tagSearch}
+            onChange={(e) => {
+              setTagSearch(e.target.value);
+              setShowTagDropdown(true);
+            }}
+            onFocus={() => setShowTagDropdown(true)}
+            onBlur={() => setTimeout(() => setShowTagDropdown(false), 200)}
+            placeholder="Buscar tag..."
+            className="bg-muted border-border"
+          />
+          {showTagDropdown && (tagSearch || filteredTags.length > 0) && (
+            <div className="absolute z-50 top-full mt-1 w-full bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {filteredTags.length > 0 ? (
+                filteredTags.map(tag => (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleAddTag(tag.id)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: tag.color }} />
+                    {tag.name}
+                  </button>
+                ))
+              ) : tagSearch.trim() ? (
+                <div className="px-3 py-2 text-sm text-muted-foreground">
+                  Nenhuma tag encontrada. Crie em Configurações.
+                </div>
+              ) : null}
+            </div>
+          )}
+        </div>
       </div>
 
 

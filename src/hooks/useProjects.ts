@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, ProjectModule, ProjectToolSlug, ALL_TOOL_SLUGS, ProjectTechnology } from '@/types/project';
+import { Project, ProjectModule, ProjectToolSlug, ALL_TOOL_SLUGS, ProjectTechnology, ProjectTag } from '@/types/project';
 import { toast } from 'sonner';
 
 export function useProjects() {
@@ -9,15 +9,15 @@ export function useProjects() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('*, project_modules(*), clients(*), project_technologies(*, technologies(*))')
+        .select('*, project_modules(*), clients(*), project_technologies(*, technologies(*)), project_tags(*, tags(*))')
         .order('created_at', { ascending: false });
       if (error) throw error;
-      // Supabase returns FK data using table name 'clients', map to 'client' singular
       return (data as any[]).map((p: any) => ({
         ...p,
         client: p.clients ?? null,
         project_technologies: p.project_technologies ?? [],
-      })) as (Project & { project_modules: ProjectModule[]; project_technologies: ProjectTechnology[] })[];
+        project_tags: p.project_tags ?? [],
+      })) as (Project & { project_modules: ProjectModule[]; project_technologies: ProjectTechnology[]; project_tags: ProjectTag[] })[];
     },
   });
 }
@@ -28,12 +28,12 @@ export function useProject(id: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('*, project_modules(*), clients(*), project_technologies(*, technologies(*))')
+        .select('*, project_modules(*), clients(*), project_technologies(*, technologies(*)), project_tags(*, tags(*))')
         .eq('id', id)
         .single();
       if (error) throw error;
       const d = data as any;
-      return { ...d, client: d.clients ?? null, project_technologies: d.project_technologies ?? [] } as Project & { project_modules: ProjectModule[]; project_technologies: ProjectTechnology[] };
+      return { ...d, client: d.clients ?? null, project_technologies: d.project_technologies ?? [], project_tags: d.project_tags ?? [] } as Project & { project_modules: ProjectModule[]; project_technologies: ProjectTechnology[]; project_tags: ProjectTag[] };
     },
     enabled: !!id,
   });

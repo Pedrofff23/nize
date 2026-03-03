@@ -127,3 +127,18 @@ export interface ProjectTechnology {
   technologies: Technology;
   created_at: string;
 }
+
+export interface Tag {
+  id: string;
+  name: string;
+  color: string;
+  created_at: string;
+}
+
+export interface ProjectTag {
+  id: string;
+  project_id: string;
+  tag_id: string;
+  tags: Tag;
+  created_at: string;
+}
