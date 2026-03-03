@@ -65,13 +65,25 @@ export interface ProjectFile {
   metadata: Record<string, unknown>;
 }
 
+export interface TaskColumn {
+  id: string;
+  project_id: string;
+  title: string;
+  color: string;
+  order: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Task {
   id: string;
   project_id: string;
+  column_id: string | null;
   title: string;
   description: string | null;
   status: 'todo' | 'in_progress' | 'done';
   order: number;
+  custom_fields: Record<string, string>;
   created_at: string;
   updated_at: string;
 }

@@ -12,8 +12,9 @@ import NewProject from "@/pages/NewProject";
 import ProjectDetail from "@/pages/ProjectDetail";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
-import NotFound from "./pages/NotFound";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import { ThemeProvider } from "@/contexts/ThemeProvider";
+import { ThemeBackground } from "@/components/ThemeBackground";
 
 const queryClient = new QueryClient();
 
@@ -35,27 +36,13 @@ function AppLayout() {
 
   return (
     <SidebarProvider>
-      {/* Global Glassmorphic Background */}
-      <div
-        className="fixed inset-0 z-[-1] pointer-events-none"
-        style={{
-          backgroundImage: 'url(/login-bg.png)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundAttachment: 'fixed',
-        }}
-      >
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-[20px]" />
-        {/* Subtle accent glows behind everything */}
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
-      </div>
+      {/* Dynamic theme-aware background */}
+      <ThemeBackground />
 
       <div className="min-h-screen flex w-full bg-transparent">
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 bg-transparent">
           <main className="flex-1 overflow-auto p-4 sm:p-8 relative">
-            {/* SidebarTrigger available floating on mobile */}
             <div className="md:hidden absolute top-4 left-4 z-20">
               <SidebarTrigger className="text-muted-foreground hover:text-foreground bg-black/40 backdrop-blur-md border border-white/10 rounded-xl" />
             </div>
@@ -75,15 +62,17 @@ function AppLayout() {
 }
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppLayout />
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppLayout />
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ThemeProvider>
 );
 
 export default App;

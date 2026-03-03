@@ -18,6 +18,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useProjects } from '@/hooks/useProjects';
 import { Button } from '@/components/ui/button';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 
 const projectSubItems = [
   { title: 'Tarefas', tab: 'tasks', icon: ListTodo },
@@ -98,10 +99,10 @@ export function AppSidebar() {
                         navigate('/');
                       }}
                       className={`group w-full flex items-center justify-between px-4 py-3 rounded-2xl text-[14px] transition-all duration-300 relative overflow-hidden ${isProjectsSection && !isOnProjectDetail
-                          ? 'gradient-teal text-primary-foreground font-semibold shadow-lg glow-teal'
-                          : isProjectsSection
-                            ? 'bg-white/5 text-foreground font-semibold'
-                            : 'text-muted-foreground hover:bg-white/5 hover:text-white font-medium'
+                        ? 'gradient-teal text-primary-foreground font-semibold shadow-lg glow-teal'
+                        : isProjectsSection
+                          ? 'bg-white/5 text-foreground font-semibold'
+                          : 'text-muted-foreground hover:bg-white/5 hover:text-white font-medium'
                         }`}
                     >
                       <div className="flex items-center gap-3">
@@ -127,8 +128,8 @@ export function AppSidebar() {
                           <button
                             onClick={() => navigate(`/projetos/${project.id}`)}
                             className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] transition-all duration-200 ${isActiveProject
-                                ? 'bg-primary/10 text-primary font-medium'
-                                : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
+                              ? 'bg-primary/10 text-primary font-medium'
+                              : 'text-muted-foreground hover:bg-white/5 hover:text-foreground'
                               }`}
                           >
                             <FolderOpen className={`w-4 h-4 flex-shrink-0 ${isActiveProject ? 'text-primary' : ''}`} />
@@ -145,8 +146,8 @@ export function AppSidebar() {
                                     key={sub.tab}
                                     onClick={() => navigate(`/projetos/${project.id}?tab=${sub.tab}`)}
                                     className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-[12px] transition-all duration-200 ${isActiveTab
-                                        ? 'text-primary font-medium bg-primary/5'
-                                        : 'text-muted-foreground/70 hover:text-foreground hover:bg-white/5'
+                                      ? 'text-primary font-medium bg-primary/5'
+                                      : 'text-muted-foreground/70 hover:text-foreground hover:bg-white/5'
                                       }`}
                                   >
                                     <sub.icon className={`w-3.5 h-3.5 flex-shrink-0 ${isActiveTab ? 'text-primary' : ''}`} />
@@ -174,8 +175,8 @@ export function AppSidebar() {
                     <NavLink
                       to="/clientes"
                       className={`group flex items-center justify-between px-4 py-3 rounded-2xl text-[14px] transition-all duration-300 relative overflow-hidden ${isClientsSection
-                          ? 'gradient-teal text-primary-foreground font-semibold shadow-lg glow-teal'
-                          : 'text-muted-foreground hover:bg-white/5 hover:text-white font-medium'
+                        ? 'gradient-teal text-primary-foreground font-semibold shadow-lg glow-teal'
+                        : 'text-muted-foreground hover:bg-white/5 hover:text-white font-medium'
                         }`}
                     >
                       <div className="flex items-center gap-3">
@@ -192,6 +193,9 @@ export function AppSidebar() {
         </SidebarContent>
 
         <SidebarFooter className="p-6 pt-0 border-none mt-auto">
+          {/* Theme Switcher */}
+          <ThemeSwitcher />
+
           {/* Dashed "Novo Projeto" Block */}
           <div
             onClick={() => navigate('/projetos/novo')}
