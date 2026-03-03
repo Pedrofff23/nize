@@ -46,22 +46,38 @@ Nize é uma plataforma moderna e intuitiva para gestão de projetos, clientes, f
    ```
 
 3. **Configure as variáveis de ambiente**:
-   Crie um arquivo `.env` na raiz do projeto com suas chaves do Supabase:
+   Crie um arquivo `.env` baseado no [`.env.example`](file:///Users/joaomarcosaraujomaia/Projetos/my-project-hub-1/.env.example) e preencha com suas chaves do Supabase:
    ```env
    VITE_SUPABASE_URL=sua_url_do_supabase
-   VITE_SUPABASE_ANON_KEY=sua_chave_anonima
+   VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_publicavel
    ```
 
 4. **Prepare o Banco de Dados (Supabase)**:
    - Crie um novo projeto no [Supabase](https://supabase.com/).
    - Vá para o **SQL Editor**.
    - Copie e cole o conteúdo de [`supabase/full_setup.sql`](file:///Users/joaomarcosaraujomaia/Projetos/my-project-hub-1/supabase/full_setup.sql) e execute.
-   - Isso criará todas as tabelas, políticas de segurança (RLS), funções e buckets de armazenamento necessários.
+   - **Autenticação**: No Dashboard do Supabase, vá em **Authentication > Providers** e verifique se o provedor **Email** está habilitado. Para testes rápidos, você pode desabilitar a opção "Confirm email".
 
 5. **Inicie o servidor de desenvolvimento**:
    ```bash
    npm run dev
    ```
+
+## 🚀 Deployment (Vercel)
+
+Este projeto está pronto para ser implantado na **Vercel** com apenas alguns cliques:
+
+1.  **Crie um repositório no GitHub** e faça o push do seu código.
+2.  Acesse o [Dashboard da Vercel](https://vercel.com/dashboard) e clique em **"Add New" > "Project"**.
+3.  Importe o seu repositório do GitHub.
+4.  **Configurações do Projeto**:
+    - O Framework Preset deve ser detectado automaticamente como **Vite**.
+    - Em **Environment Variables**, adicione as variáveis que você configurou no seu arquivo `.env`:
+        - `VITE_SUPABASE_URL`
+        - `VITE_SUPABASE_PUBLISHABLE_KEY`
+5.  Clique em **Deploy**.
+
+Uma vez implantado, qualquer push para a branch principal (main) acionará um novo build e deploy automaticamente.
 
 ## 🏗️ Estrutura do Projeto
 
