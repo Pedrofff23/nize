@@ -109,3 +109,18 @@ export interface BudgetEntry {
   created_at: string;
   updated_at: string;
 }
+
+export interface Technology {
+  id: string;
+  name: string;
+  color: string;
+  created_at: string;
+}
+
+export interface ProjectTechnology {
+  id: string;
+  project_id: string;
+  technology_id: string;
+  technologies: Technology;
+  created_at: string;
+}

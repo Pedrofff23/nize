@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ProjectModule, AVAILABLE_TOOLS, ProjectToolSlug } from '@/types/project';
+import { ProjectModule, AVAILABLE_TOOLS, ProjectToolSlug, ProjectTechnology } from '@/types/project';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { TaskBoard } from '@/components/modules/TaskBoard';
@@ -189,7 +189,6 @@ function FileSection({ projectId }: { projectId: string }) {
   );
 }
 
-// ─── ProjectDetail ────────────────────────────────────────────────────────────
 export default function ProjectDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -209,7 +208,7 @@ export default function ProjectDetail() {
     agenda: (id) => <ProjectAgenda projectId={id} />,
     budget: (id) => <ProjectBudget projectId={id} />,
     files: (id) => (
-      <div className="bg-card border border-border rounded-2xl p-6">
+      <div className="bg-card border border-border shadow-sm rounded-2xl p-6">
         <FileSection projectId={id} />
       </div>
     ),
@@ -247,19 +246,25 @@ export default function ProjectDetail() {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-4 max-w-5xl mx-auto">
-        <Skeleton className="h-8 w-48" />
-        <Skeleton className="h-32 rounded-xl" />
-        <Skeleton className="h-64 rounded-xl" />
+      <div className="p-6 space-y-6 max-w-[1400px] mx-auto w-full">
+        <Skeleton className="h-6 w-48" />
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="md:w-72 lg:w-80 space-y-6">
+            <Skeleton className="h-64 rounded-2xl" />
+            <Skeleton className="h-64 rounded-2xl" />
+          </div>
+          <Skeleton className="flex-1 h-[600px] rounded-2xl" />
+        </div>
       </div>
     );
   }
 
   if (!project) {
     return (
-      <div className="p-6 text-center">
-        <p className="text-muted-foreground">Projeto não encontrado.</p>
-        <Button onClick={() => navigate('/')} variant="ghost" className="mt-2">Voltar</Button>
+      <div className="p-6 text-center flex flex-col items-center justify-center h-[50vh]">
+        <h2 className="text-xl font-bold text-foreground mb-2">Projeto não encontrado</h2>
+        <p className="text-muted-foreground mb-6">O projeto que você está procurando não existe ou foi excluído.</p>
+        <Button onClick={() => navigate('/')} variant="default" className="shadow-lg hover:shadow-xl transition-all">Voltar para o Início</Button>
       </div>
     );
   }
@@ -271,152 +276,133 @@ export default function ProjectDetail() {
   // Filter the available tools to only show enabled ones
   const enabledTools = project.enabled_tools ?? AVAILABLE_TOOLS.map(t => t.slug);
   const enabledToolDefs = AVAILABLE_TOOLS.filter(t => enabledTools.includes(t.slug));
-  // Always include 'modules' tab for custom modules
-  const defaultTab = enabledToolDefs.length > 0 ? enabledToolDefs[0].slug : 'modules';
-  const activeTab = enabledTools.includes(tabFromUrl as ProjectToolSlug) || tabFromUrl === 'modules' ? tabFromUrl : defaultTab;
-
-  // Hide the big project header card when inside a tool tab
-  const isToolTab = activeTab !== 'modules';
+  const defaultTab = enabledToolDefs.length > 0 ? enabledToolDefs[0].slug : 'tasks';
+  const activeTab = enabledTools.includes(tabFromUrl as ProjectToolSlug) ? tabFromUrl : defaultTab;
 
   return (
-    <div className={`p-6 space-y-4 mx-auto ${isToolTab ? 'max-w-full' : 'max-w-5xl'}`}>
-      {/* Breadcrumb */}
-      <AppBreadcrumb items={[
-        { label: 'Projetos', href: '/' },
-        { label: project.name },
-      ]} />
+    <div className="p-4 md:p-6 lg:p-8 space-y-6 w-full max-w-[1600px] mx-auto bg-background/50 min-h-screen">
+      {/* Breadcrumb row */}
+      <div className="flex items-center justify-between pb-2">
+        <AppBreadcrumb items={[
+          { label: 'Projetos', href: '/' },
+          { label: project.name },
+        ]} />
+      </div>
 
-      {/* Compact Header for tool tabs */}
-      {isToolTab && (
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 min-w-0">
-            <h1 className="text-lg font-bold text-foreground truncate">{project.name}</h1>
-            <StatusBadge status={project.status} />
-          </div>
-          <div className="flex gap-2 flex-shrink-0">
-            <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="border-border hover:border-primary/40 h-8 text-xs">
-              <Pencil className="w-3.5 h-3.5 mr-1.5" /> Editar
-            </Button>
-          </div>
-        </div>
-      )}
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col lg:flex-row gap-8 items-start">
+        {/* Left Column: Project Identity & Modules Menu */}
+        <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 space-y-6 sticky top-6">
 
-      {/* Full Project Header — only on modules tab */}
-      {!isToolTab && (
-        <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 flex-wrap">
-                <h1 className="text-2xl font-bold text-foreground">{project.name}</h1>
-                <StatusBadge status={project.status} size="md" />
+          {/* Project Details Card */}
+          <div className="bg-gradient-to-br from-card to-card/50 border border-border/60 rounded-2xl p-5 shadow-sm backdrop-blur-md relative overflow-hidden group">
+            {/* Background blur decorative element */}
+            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
+
+            <div className="relative z-10 flex flex-col gap-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <h1 className="text-xl font-bold leading-tight text-foreground">{project.name}</h1>
+                  <StatusBadge status={project.status} size="sm" />
+                </div>
+                <Button size="icon" variant="ghost" onClick={() => setEditOpen(true)} className="h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10">
+                  <Pencil className="w-4 h-4" />
+                </Button>
               </div>
-              {project.description && <p className="text-muted-foreground text-sm mt-2">{project.description}</p>}
-            </div>
-            <div className="flex gap-2 flex-shrink-0">
-              <Button variant="outline" size="sm" onClick={() => setEditOpen(true)} className="border-border hover:border-primary/40">
-                <Pencil className="w-4 h-4 mr-2" /> Editar
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)} className="border-destructive/40 text-destructive hover:bg-destructive/10">
-                <Trash2 className="w-4 h-4 mr-2" /> Excluir
-              </Button>
-            </div>
-          </div>
 
-          <div className="flex flex-wrap gap-4 text-sm">
-            {project.deadline && (
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <CalendarDays className="w-4 h-4 text-primary" />
-                Prazo: <span className="text-foreground font-medium">{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <DollarSign className="w-4 h-4 text-primary" />
-              Valor: <span className="text-foreground font-medium">{(project.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-            </div>
-          </div>
+              {project.description && (
+                <p className="text-sm text-muted-foreground/90 leading-relaxed font-medium">
+                  {project.description}
+                </p>
+              )}
 
-          {modules.length > 0 && (
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>{doneCount}/{modules.length} módulos customizados concluídos</span>
-                <span>{progress}%</span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div className="h-full gradient-teal rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-        <TabsList className="bg-card border border-border h-auto p-1 flex flex-wrap gap-1">
-          {enabledToolDefs.map((tool) => (
-            <TabsTrigger
-              key={tool.slug}
-              value={tool.slug}
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm flex items-center gap-1.5"
-            >
-              <tool.icon className="w-3.5 h-3.5" />
-              {tool.name}
-            </TabsTrigger>
-          ))}
-          <TabsTrigger value="modules" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-xs sm:text-sm">
-            Módulos
-          </TabsTrigger>
-        </TabsList>
-
-        {/* Dynamic tool tabs */}
-        {enabledToolDefs.map((tool) => (
-          <TabsContent key={tool.slug} value={tool.slug}>
-            {toolTabContent[tool.slug](id!)}
-          </TabsContent>
-        ))}
-
-        {/* Módulos customizados */}
-        <TabsContent value="modules">
-          <div className="bg-card border border-border rounded-2xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="font-semibold text-foreground text-lg">Módulos Customizados</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Adicione módulos específicos para este projeto</p>
-              </div>
-              <Button variant="outline" size="sm" onClick={() => setAddingModule(true)} className="border-primary/40 text-primary hover:bg-primary/10">
-                <Plus className="w-4 h-4 mr-2" /> Adicionar
-              </Button>
-            </div>
-
-            {addingModule && (
-              <div className="bg-muted/30 border border-primary/30 rounded-xl p-4 space-y-3">
-                <Input value={newModName} onChange={(e) => setNewModName(e.target.value)} placeholder="Nome do módulo *" className="bg-background border-border" />
-                <Textarea value={newModDesc} onChange={(e) => setNewModDesc(e.target.value)} placeholder="Descrição (opcional)" rows={2} className="bg-background border-border resize-none" />
-                <Select value={newModStatus} onValueChange={(v) => setNewModStatus(v as ProjectModule['status'])}>
-                  <SelectTrigger className="bg-background border-border"><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                    <SelectItem value="concluido">Concluído</SelectItem>
-                  </SelectContent>
-                </Select>
-                <div className="flex gap-2">
-                  <Button onClick={handleAddModule} size="sm" className="gradient-teal text-primary-foreground hover:opacity-90">Adicionar</Button>
-                  <Button onClick={() => setAddingModule(false)} size="sm" variant="outline" className="border-border">Cancelar</Button>
+              <div className="space-y-2.5 pt-2 border-t border-border/50">
+                {project.deadline && (
+                  <div className="flex items-center gap-3 text-sm text-foreground/80">
+                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <CalendarDays className="w-3.5 h-3.5 text-primary" />
+                    </div>
+                    <span>{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-3 text-sm text-foreground/80">
+                  <div className="w-7 h-7 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
+                    <DollarSign className="w-3.5 h-3.5 text-green-500" />
+                  </div>
+                  <span className="font-semibold">{(project.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                 </div>
               </div>
-            )}
 
-            {modules.length === 0 && !addingModule && (
-              <p className="text-sm text-muted-foreground text-center py-10 border border-dashed border-border rounded-xl">
-                Nenhum módulo customizado ainda. Adicione para organizar entregas específicas.
-              </p>
-            )}
+              {/* Technologies */}
+              {(project as any).project_technologies && (project as any).project_technologies.length > 0 && (
+                <div className="pt-2 flex flex-wrap gap-1.5">
+                  {(project as any).project_technologies.map((pt: ProjectTechnology) => (
+                    <span
+                      key={pt.id}
+                      className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold text-white shadow-sm"
+                      style={{ backgroundColor: pt.technologies?.color ?? '#6366f1' }}
+                    >
+                      {pt.technologies?.name}
+                    </span>
+                  ))}
+                </div>
+              )}
 
-            <div className="space-y-2">
-              {modules.map((m) => <ModuleRow key={m.id} module={m} projectId={id!} />)}
+              {/* Progress */}
+              {modules.length > 0 && (
+                <div className="space-y-2 pt-3 border-t border-border/50">
+                  <div className="flex justify-between text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                    <span>Progresso ({doneCount}/{modules.length})</span>
+                    <span className={progress === 100 ? 'text-primary font-bold' : ''}>{progress}%</span>
+                  </div>
+                  <div className="h-1.5 bg-muted/60 rounded-full overflow-hidden shadow-inner flex">
+                    <div className="h-full bg-primary rounded-full transition-all duration-700 ease-out" style={{ width: `${progress}%` }} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        </TabsContent>
+
+          {/* Modules Menu Tab List */}
+          <div className="bg-card/50 border border-border/50 rounded-2xl p-3 shadow-sm backdrop-blur-md">
+            <h3 className="text-xs font-bold text-muted-foreground mb-3 px-3 uppercase tracking-widest">
+              Módulos e Ferramentas
+            </h3>
+            <TabsList className="flex flex-col h-auto w-full bg-transparent p-0 gap-1.5 border-none">
+              {enabledToolDefs.map((tool) => (
+                <TabsTrigger
+                  key={tool.slug}
+                  value={tool.slug}
+                  className="w-full justify-start text-left px-4 py-3 h-auto text-[14px] font-medium rounded-xl border border-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/20 data-[state=inactive]:text-foreground/70 data-[state=inactive]:hover:bg-muted/60 transition-all shadow-none outline-none group"
+                >
+                  <div className="flex items-center gap-3">
+                    <tool.icon className="w-4 h-4 transition-transform group-hover:scale-110" />
+                    {tool.name}
+                  </div>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+
+            <div className="mt-4 px-2">
+              <Button variant="ghost" size="sm" onClick={() => setDeleteOpen(true)} className="w-full justify-start text-destructive/80 hover:text-destructive hover:bg-destructive/10 text-xs font-medium h-9 rounded-xl">
+                <Trash2 className="w-3.5 h-3.5 mr-2" /> Excluir Projeto
+              </Button>
+            </div>
+          </div>
+
+        </div>
+
+        {/* Right Column: Tab Content */}
+        <div className="flex-1 w-full min-w-0 bg-background/30 rounded-3xl">
+          {enabledToolDefs.map((tool) => (
+            <TabsContent
+              key={tool.slug}
+              value={tool.slug}
+              className="m-0 border-none p-0 focus-visible:outline-none focus-visible:ring-0 animate-in fade-in zoom-in-95 duration-300"
+            >
+              {toolTabContent[tool.slug](id!)}
+            </TabsContent>
+          ))}
+        </div>
       </Tabs>
 
       {/* Edit Dialog */}
@@ -434,16 +420,18 @@ export default function ProjectDetail() {
       }}>
         <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-destructive">Aviso: Exclusão em Cascata</AlertDialogTitle>
+            <AlertDialogTitle className="text-destructive flex items-center gap-2">
+              <Trash2 className="w-5 h-5" /> Aviso: Exclusão em Cascata
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground space-y-3">
               <p>Esta ação é <strong>irreversível</strong>.</p>
               <p>
                 A exclusão deste projeto apagará definitivamente todos os seus dados vinculados, incluindo
                 <strong> tarefas, colunas, módulos, eventos, notas, finanças, fluxogramas e todos os arquivos armazenados.</strong>
               </p>
-              <div className="pt-2">
+              <div className="pt-3">
                 <label className="text-sm font-medium text-foreground">
-                  Para confirmar, digite <span className="font-bold select-all">{project.name}</span>:
+                  Para confirmar, digite <span className="font-bold select-all text-primary">{project.name}</span>:
                 </label>
                 <Input
                   value={confirmName}
@@ -454,14 +442,15 @@ export default function ProjectDetail() {
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border-border">Cancelar</AlertDialogCancel>
+          <AlertDialogFooter className="mt-4">
+            <AlertDialogCancel className="border-border rounded-xl">Cancelar</AlertDialogCancel>
             <Button
               variant="destructive"
               onClick={handleDelete}
               disabled={confirmName.trim() !== project.name.trim()}
+              className="rounded-xl shadow-lg shadow-destructive/20"
             >
-              Excluir
+              Excluir Projeto Definitivamente
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

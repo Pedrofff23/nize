@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Project, ProjectModule, ProjectToolSlug, ALL_TOOL_SLUGS } from '@/types/project';
+import { Project, ProjectModule, ProjectToolSlug, ALL_TOOL_SLUGS, ProjectTechnology } from '@/types/project';
 import { toast } from 'sonner';
 
 export function useProjects() {
@@ -9,14 +9,15 @@ export function useProjects() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('*, project_modules(*), clients(*)')
+        .select('*, project_modules(*), clients(*), project_technologies(*, technologies(*))')
         .order('created_at', { ascending: false });
       if (error) throw error;
       // Supabase returns FK data using table name 'clients', map to 'client' singular
       return (data as any[]).map((p: any) => ({
         ...p,
         client: p.clients ?? null,
-      })) as (Project & { project_modules: ProjectModule[] })[];
+        project_technologies: p.project_technologies ?? [],
+      })) as (Project & { project_modules: ProjectModule[]; project_technologies: ProjectTechnology[] })[];
     },
   });
 }
@@ -27,12 +28,12 @@ export function useProject(id: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('projects')
-        .select('*, project_modules(*), clients(*)')
+        .select('*, project_modules(*), clients(*), project_technologies(*, technologies(*))')
         .eq('id', id)
         .single();
       if (error) throw error;
       const d = data as any;
-      return { ...d, client: d.clients ?? null } as Project & { project_modules: ProjectModule[] };
+      return { ...d, client: d.clients ?? null, project_technologies: d.project_technologies ?? [] } as Project & { project_modules: ProjectModule[]; project_technologies: ProjectTechnology[] };
     },
     enabled: !!id,
   });
