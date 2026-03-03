@@ -36,6 +36,7 @@ import { ProjectAgenda } from '@/components/modules/ProjectAgenda';
 import { ProjectBudget } from '@/components/modules/ProjectBudget';
 import { ProjectNotes } from '@/components/modules/ProjectNotes';
 import { ProjectFlowchart } from '@/components/modules/ProjectFlowchart';
+import { ProjectCredentials } from '@/components/modules/ProjectCredentials';
 import {
   CalendarDays,
   DollarSign,
@@ -215,6 +216,11 @@ export default function ProjectDetail() {
     ),
     notes: (id) => <ProjectNotes projectId={id} />,
     flowchart: (id) => <ProjectFlowchart projectId={id} />,
+    credentials: (id) => (
+      <div className="bg-card border border-border rounded-2xl p-6">
+        <ProjectCredentials projectId={id} />
+      </div>
+    ),
   };
 
   const [editOpen, setEditOpen] = useState(false);

@@ -6,10 +6,11 @@ import {
   FolderOpen,
   FileEdit,
   GitBranch,
+  KeyRound,
   LucideIcon,
 } from 'lucide-react';
 
-export type ProjectToolSlug = 'tasks' | 'agenda' | 'budget' | 'files' | 'notes' | 'flowchart';
+export type ProjectToolSlug = 'tasks' | 'agenda' | 'budget' | 'files' | 'notes' | 'flowchart' | 'credentials';
 
 export interface ToolDefinition {
   slug: ProjectToolSlug;
@@ -25,6 +26,7 @@ export const AVAILABLE_TOOLS: ToolDefinition[] = [
   { slug: 'files', name: 'Arquivos', description: 'Biblioteca de arquivos do projeto', icon: FolderOpen },
   { slug: 'notes', name: 'Notas', description: 'Editor de notas estilo Notion', icon: FileEdit },
   { slug: 'flowchart', name: 'Fluxograma', description: 'Board de fluxogramas visuais', icon: GitBranch },
+  { slug: 'credentials', name: 'Credenciais', description: 'Gerenciador de senhas e acessos', icon: KeyRound },
 ];
 
 export const ALL_TOOL_SLUGS: ProjectToolSlug[] = AVAILABLE_TOOLS.map(t => t.slug);

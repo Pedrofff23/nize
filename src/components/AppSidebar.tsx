@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, LogOut, Users, ChevronDown, ChevronRight,
-  FolderOpen, ListTodo, CalendarDays, DollarSign, Layers, FileText,
+  FolderOpen, ListTodo, CalendarDays, DollarSign, Layers, FileText, KeyRound,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -26,6 +26,7 @@ const projectSubItems = [
   { title: 'Orçamento', tab: 'budget', icon: DollarSign },
   { title: 'Módulos', tab: 'modules', icon: Layers },
   { title: 'Arquivos', tab: 'files', icon: FileText },
+  { title: 'Credenciais', tab: 'credentials', icon: KeyRound },
 ];
 
 export function AppSidebar() {
@@ -48,6 +49,7 @@ export function AppSidebar() {
 
   const isProjectsSection = location.pathname === '/' || location.pathname.startsWith('/projetos');
   const isClientsSection = location.pathname.startsWith('/clientes');
+  const isCredentialsSection = location.pathname.startsWith('/credenciais');
 
   return (
     <Sidebar variant="floating" className="border-none bg-transparent">
@@ -182,6 +184,24 @@ export function AppSidebar() {
                       <div className="flex items-center gap-3">
                         <Users className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isClientsSection ? 'text-primary-foreground' : ''}`} />
                         <span>Clientes</span>
+                      </div>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {/* ── Credenciais ──────────────────────────────────────── */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/credenciais"
+                      className={`group flex items-center justify-between px-4 py-3 rounded-2xl text-[14px] transition-all duration-300 relative overflow-hidden ${isCredentialsSection
+                        ? 'gradient-teal text-primary-foreground font-semibold shadow-lg glow-teal'
+                        : 'text-muted-foreground hover:bg-white/5 hover:text-white font-medium'
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <KeyRound className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isCredentialsSection ? 'text-primary-foreground' : ''}`} />
+                        <span>Credenciais</span>
                       </div>
                     </NavLink>
                   </SidebarMenuButton>

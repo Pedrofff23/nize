@@ -14,6 +14,92 @@ export type Database = {
   }
   public: {
     Tables: {
+      credentials: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          username: string | null
+          password: string | null
+          url: string | null
+          notes: string | null
+          category: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          username?: string | null
+          password?: string | null
+          url?: string | null
+          notes?: string | null
+          category?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          username?: string | null
+          password?: string | null
+          url?: string | null
+          notes?: string | null
+          category?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      project_credentials: {
+        Row: {
+          id: string
+          project_id: string
+          title: string
+          username: string | null
+          password: string | null
+          url: string | null
+          notes: string | null
+          category: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          title: string
+          username?: string | null
+          password?: string | null
+          url?: string | null
+          notes?: string | null
+          category?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          title?: string
+          username?: string | null
+          password?: string | null
+          url?: string | null
+          notes?: string | null
+          category?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_credentials_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budget_entries: {
         Row: {
           amount: number

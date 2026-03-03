@@ -12,6 +12,7 @@ import NewProject from "@/pages/NewProject";
 import ProjectDetail from "@/pages/ProjectDetail";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
+import Credentials from "@/pages/Credentials";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
 import { ThemeBackground } from "@/components/ThemeBackground";
@@ -52,6 +53,7 @@ function AppLayout() {
               <Route path="/projetos/:id" element={<ProjectDetail />} />
               <Route path="/clientes" element={<Clients />} />
               <Route path="/clientes/:id" element={<ClientDetail />} />
+              <Route path="/credenciais" element={<Credentials />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
