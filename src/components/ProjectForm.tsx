@@ -31,6 +31,7 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
   const [name, setName] = useState(project?.name ?? '');
   const [description, setDescription] = useState(project?.description ?? '');
   const [price, setPrice] = useState(project?.price?.toString() ?? '0');
+  const [monthlyValue, setMonthlyValue] = useState(project?.monthly_value?.toString() ?? '');
   const [status, setStatus] = useState<Project['status']>(project?.status ?? 'ativo');
   const [deadline, setDeadline] = useState<Date | undefined>(
     project?.deadline ? new Date(project.deadline) : undefined
@@ -102,6 +103,7 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
       name: name.trim(),
       description: description.trim() || null,
       price: parseFloat(price) || 0,
+      monthly_value: monthlyValue.trim() ? parseFloat(monthlyValue) : null,
       status,
       deadline: deadline ? format(deadline, 'yyyy-MM-dd') : null,
       client_id: (clientId && clientId !== 'none') ? clientId : null,
@@ -230,6 +232,20 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
             placeholder="0,00"
             className="bg-muted border-border"
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Valor Mensal Recorrente (R$)</Label>
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            value={monthlyValue}
+            onChange={(e) => setMonthlyValue(e.target.value)}
+            placeholder="Opcional"
+            className="bg-muted border-border"
+          />
+          <p className="text-[10px] text-muted-foreground">Preencha se o projeto tem cobrança mensal recorrente</p>
         </div>
 
         <div className="space-y-2">

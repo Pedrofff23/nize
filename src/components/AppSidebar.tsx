@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, LogOut, Users, ChevronDown, ChevronRight,
-  FolderOpen, ListTodo, CalendarDays, DollarSign, Layers, FileText, KeyRound,
+  FolderOpen, ListTodo, CalendarDays, DollarSign, Layers, FileText, KeyRound, Wallet,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -50,6 +50,7 @@ export function AppSidebar() {
   const isProjectsSection = location.pathname === '/' || location.pathname.startsWith('/projetos');
   const isClientsSection = location.pathname.startsWith('/clientes');
   const isCredentialsSection = location.pathname.startsWith('/credenciais');
+  const isFinancesSection = location.pathname.startsWith('/financas');
 
   return (
     <Sidebar variant="floating" className="border-none bg-transparent">
@@ -202,6 +203,24 @@ export function AppSidebar() {
                       <div className="flex items-center gap-3">
                         <KeyRound className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isCredentialsSection ? 'text-primary-foreground' : ''}`} />
                         <span>Credenciais</span>
+                      </div>
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {/* ── Finanças ──────────────────────────────────────── */}
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink
+                      to="/financas"
+                      className={`group flex items-center justify-between px-4 py-3 rounded-2xl text-[14px] transition-all duration-300 relative overflow-hidden ${isFinancesSection
+                        ? 'gradient-teal text-primary-foreground font-semibold shadow-lg glow-teal'
+                        : 'text-muted-foreground hover:bg-white/5 hover:text-white font-medium'
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Wallet className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isFinancesSection ? 'text-primary-foreground' : ''}`} />
+                        <span>Finanças</span>
                       </div>
                     </NavLink>
                   </SidebarMenuButton>

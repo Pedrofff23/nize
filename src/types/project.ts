@@ -36,6 +36,7 @@ export interface Project {
   name: string;
   deadline: string | null;
   price: number;
+  monthly_value: number | null;
   status: 'ativo' | 'concluido' | 'pausado';
   description: string | null;
   client_id: string | null;
