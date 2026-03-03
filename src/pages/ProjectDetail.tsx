@@ -17,6 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatusBadge } from '@/components/StatusBadge';
 import { ProjectForm } from '@/components/ProjectForm';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +49,7 @@ import {
   Upload,
   FileText,
   Download,
+  Info,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -295,110 +297,131 @@ export default function ProjectDetail() {
         ]} />
       </div>
 
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col lg:flex-row gap-8 items-start">
-        {/* Left Column: Project Identity & Modules Menu */}
-        <div className="w-full lg:w-72 xl:w-80 flex-shrink-0 space-y-6 sticky top-6">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="flex flex-col gap-6 items-stretch w-full">
+        {/* Top Header: Project Identity & Modules Menu */}
+        <div className="w-full bg-gradient-to-br from-card/80 to-card/30 border border-border/60 rounded-2xl shadow-sm backdrop-blur-md relative overflow-visible z-10 transition-all">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-3 md:px-5">
 
-          {/* Project Details Card */}
-          <div className="bg-gradient-to-br from-card to-card/50 border border-border/60 rounded-2xl p-5 shadow-sm backdrop-blur-md relative overflow-hidden group">
-            {/* Background blur decorative element */}
-            <div className="absolute top-0 right-0 -mt-10 -mr-10 w-32 h-32 bg-primary/10 rounded-full blur-3xl opacity-50 group-hover:opacity-70 transition-opacity duration-500" />
+            {/* Title & Status */}
+            <div className="flex items-center gap-3 flex-shrink-0 min-w-0 pr-2">
+              <h1 className="text-xl font-bold leading-tight text-foreground truncate max-w-[200px] xl:max-w-[400px]">{project.name}</h1>
+              <StatusBadge status={project.status} size="sm" />
+            </div>
 
-            <div className="relative z-10 flex flex-col gap-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <h1 className="text-xl font-bold leading-tight text-foreground">{project.name}</h1>
-                  <StatusBadge status={project.status} size="sm" />
-                </div>
-                <Button size="icon" variant="ghost" onClick={() => setEditOpen(true)} className="h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10">
-                  <Pencil className="w-4 h-4" />
-                </Button>
-              </div>
-
-              {project.description && (
-                <p className="text-sm text-muted-foreground/90 leading-relaxed font-medium">
-                  {project.description}
-                </p>
-              )}
-
-              <div className="space-y-2.5 pt-2 border-t border-border/50">
-                {project.deadline && (
-                  <div className="flex items-center gap-3 text-sm text-foreground/80">
-                    <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <CalendarDays className="w-3.5 h-3.5 text-primary" />
-                    </div>
-                    <span>{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-3 text-sm text-foreground/80">
-                  <div className="w-7 h-7 rounded-lg bg-green-500/10 flex items-center justify-center flex-shrink-0">
-                    <DollarSign className="w-3.5 h-3.5 text-green-500" />
-                  </div>
-                  <span className="font-semibold">{(project.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
-                </div>
-              </div>
-
-              {/* Technologies */}
-              {(project as any).project_technologies && (project as any).project_technologies.length > 0 && (
-                <div className="pt-2 flex flex-wrap gap-1.5">
-                  {(project as any).project_technologies.map((pt: ProjectTechnology) => (
-                    <span
-                      key={pt.id}
-                      className="inline-flex items-center px-2.5 py-1 rounded-md text-[11px] font-semibold text-white shadow-sm"
-                      style={{ backgroundColor: pt.technologies?.color ?? '#6366f1' }}
+            {/* Modules Menu Tab List (Horizontal) & Menu Trigger */}
+            <div className="flex items-center justify-between lg:justify-end flex-1 gap-2 md:gap-4 overflow-hidden">
+              <div className="overflow-x-auto hide-scrollbar flex-1 flex lg:justify-end">
+                <TabsList className="flex h-auto w-max bg-transparent p-1 gap-1.5 border-none">
+                  {enabledToolDefs.map((tool) => (
+                    <TabsTrigger
+                      key={tool.slug}
+                      value={tool.slug}
+                      className="flex-shrink-0 justify-center text-center px-4 py-2 h-auto text-[13px] font-medium rounded-xl border border-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/20 data-[state=inactive]:text-foreground/70 data-[state=inactive]:hover:bg-muted/60 transition-all shadow-none outline-none group"
                     >
-                      {pt.technologies?.name}
-                    </span>
+                      <div className="flex items-center gap-2">
+                        <tool.icon className="w-4 h-4 transition-transform group-hover:scale-110" />
+                        <span className="hidden sm:inline">{tool.name}</span>
+                      </div>
+                    </TabsTrigger>
                   ))}
-                </div>
-              )}
+                </TabsList>
+              </div>
 
-              {/* Progress */}
-              {modules.length > 0 && (
-                <div className="space-y-2 pt-3 border-t border-border/50">
-                  <div className="flex justify-between text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                    <span>Progresso ({doneCount}/{modules.length})</span>
-                    <span className={progress === 100 ? 'text-primary font-bold' : ''}>{progress}%</span>
+              {/* Project Info Menu */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button size="sm" variant="outline" className="flex-shrink-0 h-10 px-3 md:px-4 rounded-xl bg-card border-border hover:bg-primary/10 hover:text-primary transition-colors shrink-0 shadow-sm gap-2" title="Informações e Detalhes do Projeto">
+                    <Info className="w-4 h-4" />
+                    <span className="hidden md:inline font-medium text-[13px]">Sobre</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="overflow-y-auto border-border bg-card w-full sm:max-w-md p-6">
+                  <SheetHeader className="mb-6 text-left">
+                    <SheetTitle className="text-xl font-bold tracking-tight">Sobre o Projeto</SheetTitle>
+                  </SheetHeader>
+
+                  <div className="space-y-7">
+                    <div className="flex items-center justify-between p-3 bg-muted/20 border border-border/50 rounded-xl">
+                      <StatusBadge status={project.status} />
+                      <div className="flex items-center gap-1.5">
+                        <Button size="icon" variant="ghost" onClick={() => setEditOpen(true)} className="h-8 w-8 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10">
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => setDeleteOpen(true)} className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {project.description && (
+                      <div className="space-y-2">
+                        <h4 className="text-[13px] font-semibold text-foreground uppercase tracking-wider">Descrição</h4>
+                        <p className="text-[14px] text-muted-foreground/90 leading-relaxed max-w-none">
+                          {project.description}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {project.deadline && (
+                        <div className="flex flex-col gap-2 p-4 rounded-xl bg-muted/30 border border-border/40">
+                          <div className="flex items-center gap-2 text-primary">
+                            <CalendarDays className="w-4 h-4" />
+                            <p className="text-[11px] font-bold uppercase tracking-wider">Prazo</p>
+                          </div>
+                          <span className="text-[14px] font-semibold text-foreground">{format(new Date(project.deadline), 'dd/MM/yyyy', { locale: ptBR })}</span>
+                        </div>
+                      )}
+                      <div className="flex flex-col gap-2 p-4 rounded-xl bg-muted/30 border border-border/40">
+                        <div className="flex items-center gap-2 text-green-500">
+                          <DollarSign className="w-4 h-4" />
+                          <p className="text-[11px] font-bold uppercase tracking-wider">Orçamento</p>
+                        </div>
+                        <span className="text-[14px] font-semibold text-foreground">{(project.price ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                      </div>
+                    </div>
+
+                    {/* Progress */}
+                    {modules.length > 0 && (
+                      <div className="space-y-3 p-4 rounded-xl bg-muted/30 border border-border/40">
+                        <div className="flex justify-between text-[11px] font-bold text-foreground uppercase tracking-wider">
+                          <span>Progresso ({doneCount}/{modules.length})</span>
+                          <span className={progress === 100 ? 'text-primary' : ''}>{progress}%</span>
+                        </div>
+                        <div className="h-2 bg-background rounded-full overflow-hidden shadow-inner flex">
+                          <div className="h-full bg-primary rounded-full transition-all duration-700 ease-out" style={{ width: `${progress}%` }} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Technologies */}
+                    {(project as any).project_technologies && (project as any).project_technologies.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-[13px] font-semibold text-foreground uppercase tracking-wider">Tecnologias</h4>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {(project as any).project_technologies.map((pt: ProjectTechnology) => (
+                            <span
+                              key={pt.id}
+                              className="inline-flex items-center px-3 py-1.5 rounded-lg text-[12px] font-semibold text-white shadow-sm"
+                              style={{ backgroundColor: pt.technologies?.color ?? '#6366f1' }}
+                            >
+                              {pt.technologies?.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                   </div>
-                  <div className="h-1.5 bg-muted/60 rounded-full overflow-hidden shadow-inner flex">
-                    <div className="h-full bg-primary rounded-full transition-all duration-700 ease-out" style={{ width: `${progress}%` }} />
-                  </div>
-                </div>
-              )}
+                </SheetContent>
+              </Sheet>
+
             </div>
           </div>
-
-          {/* Modules Menu Tab List */}
-          <div className="bg-card/50 border border-border/50 rounded-2xl p-3 shadow-sm backdrop-blur-md">
-            <h3 className="text-xs font-bold text-muted-foreground mb-3 px-3 uppercase tracking-widest">
-              Módulos e Ferramentas
-            </h3>
-            <TabsList className="flex flex-col h-auto w-full bg-transparent p-0 gap-1.5 border-none">
-              {enabledToolDefs.map((tool) => (
-                <TabsTrigger
-                  key={tool.slug}
-                  value={tool.slug}
-                  className="w-full justify-start text-left px-4 py-3 h-auto text-[14px] font-medium rounded-xl border border-transparent data-[state=active]:bg-primary/10 data-[state=active]:text-primary data-[state=active]:border-primary/20 data-[state=inactive]:text-foreground/70 data-[state=inactive]:hover:bg-muted/60 transition-all shadow-none outline-none group"
-                >
-                  <div className="flex items-center gap-3">
-                    <tool.icon className="w-4 h-4 transition-transform group-hover:scale-110" />
-                    {tool.name}
-                  </div>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            <div className="mt-4 px-2">
-              <Button variant="ghost" size="sm" onClick={() => setDeleteOpen(true)} className="w-full justify-start text-destructive/80 hover:text-destructive hover:bg-destructive/10 text-xs font-medium h-9 rounded-xl">
-                <Trash2 className="w-3.5 h-3.5 mr-2" /> Excluir Projeto
-              </Button>
-            </div>
-          </div>
-
         </div>
 
-        {/* Right Column: Tab Content */}
-        <div className="flex-1 w-full min-w-0 bg-background/30 rounded-3xl">
+        {/* Tab Content */}
+        <div className="flex-1 w-full min-w-0 bg-background/30 rounded-3xl mt-2">
           {enabledToolDefs.map((tool) => (
             <TabsContent
               key={tool.slug}
