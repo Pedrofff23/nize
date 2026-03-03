@@ -371,6 +371,42 @@ export type Database = {
           },
         ]
       }
+      project_technologies: {
+        Row: {
+          created_at: string
+          id: string
+          project_id: string
+          technology_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          project_id: string
+          technology_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          project_id?: string
+          technology_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_technologies_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_technologies_technology_id_fkey"
+            columns: ["technology_id"]
+            isOneToOne: false
+            referencedRelation: "technologies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           client_id: string | null
@@ -509,6 +545,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      technologies: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
     }
     Views: {

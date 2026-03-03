@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Project, ProjectModule, ProjectToolSlug, AVAILABLE_TOOLS, ALL_TOOL_SLUGS } from '@/types/project';
-import { useCreateProject, useUpdateProject, ModuleInput } from '@/hooks/useProjects';
+import { Project, ProjectModule, ProjectToolSlug, AVAILABLE_TOOLS, ALL_TOOL_SLUGS, Technology, ProjectTechnology } from '@/types/project';
+import { useCreateProject, useUpdateProject } from '@/hooks/useProjects';
 import { useClients } from '@/hooks/useClients';
+import { useTechnologies, useCreateTechnology, useAddProjectTechnology, useRemoveProjectTechnology } from '@/hooks/useTechnologies';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,21 +11,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Plus, Trash2, X, User, Building2, Check as CheckIcon } from 'lucide-react';
+import { CalendarIcon, Plus, Trash2, X, User, Building2, Check as CheckIcon, Palette } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 interface ProjectFormProps {
-  project?: Project & { project_modules?: ProjectModule[] };
+  project?: Project & { project_modules?: ProjectModule[]; project_technologies?: ProjectTechnology[] };
   onCancel?: () => void;
 }
 
-type ModuleDraft = {
-  name: string;
-  description: string;
-  status: 'pendente' | 'em_andamento' | 'concluido';
-};
+
 
 export function ProjectForm({ project, onCancel }: ProjectFormProps) {
   const navigate = useNavigate();
@@ -38,18 +35,56 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
   const [deadline, setDeadline] = useState<Date | undefined>(
     project?.deadline ? new Date(project.deadline) : undefined
   );
-  const [modules, setModules] = useState<ModuleDraft[]>(
-    project?.project_modules?.map((m) => ({
-      name: m.name,
-      description: m.description ?? '',
-      status: m.status,
-    })) ?? []
-  );
   const [clientId, setClientId] = useState<string>(project?.client_id ?? '');
   const [enabledTools, setEnabledTools] = useState<ProjectToolSlug[]>(
     project?.enabled_tools ?? [...ALL_TOOL_SLUGS]
   );
   const { data: clientsList } = useClients();
+  const { data: allTechnologies } = useTechnologies();
+  const createTechnology = useCreateTechnology();
+  const addProjectTech = useAddProjectTechnology();
+  const removeProjectTech = useRemoveProjectTechnology();
+
+  // Technologies state
+  const [selectedTechIds, setSelectedTechIds] = useState<string[]>(
+    project?.project_technologies?.map(pt => pt.technology_id) ?? []
+  );
+  const [techSearch, setTechSearch] = useState('');
+  const [showTechDropdown, setShowTechDropdown] = useState(false);
+  const [newTechName, setNewTechName] = useState('');
+  const [newTechColor, setNewTechColor] = useState('#6366f1');
+  const [showNewTechForm, setShowNewTechForm] = useState(false);
+
+  const TECH_COLORS = [
+    '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
+    '#f97316', '#eab308', '#22c55e', '#14b8a6',
+    '#06b6d4', '#3b82f6', '#64748b', '#a855f7',
+  ];
+
+  const filteredTechs = (allTechnologies ?? []).filter(
+    t => !selectedTechIds.includes(t.id) && t.name.toLowerCase().includes(techSearch.toLowerCase())
+  );
+
+  const selectedTechs = (allTechnologies ?? []).filter(t => selectedTechIds.includes(t.id));
+
+  const handleAddTech = (techId: string) => {
+    setSelectedTechIds(prev => [...prev, techId]);
+    setTechSearch('');
+    setShowTechDropdown(false);
+  };
+
+  const handleRemoveTech = (techId: string) => {
+    setSelectedTechIds(prev => prev.filter(id => id !== techId));
+  };
+
+  const handleCreateTech = async () => {
+    if (!newTechName.trim()) return;
+    const tech = await createTechnology.mutateAsync({ name: newTechName.trim(), color: newTechColor });
+    setSelectedTechIds(prev => [...prev, tech.id]);
+    setNewTechName('');
+    setNewTechColor('#6366f1');
+    setShowNewTechForm(false);
+  };
 
   const toggleTool = (slug: ProjectToolSlug) => {
     setEnabledTools(prev =>
@@ -57,17 +92,7 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
     );
   };
 
-  const addModule = () => {
-    setModules([...modules, { name: '', description: '', status: 'pendente' }]);
-  };
 
-  const removeModule = (i: number) => {
-    setModules(modules.filter((_, idx) => idx !== i));
-  };
-
-  const updateModuleField = (i: number, field: keyof ModuleDraft, value: string) => {
-    setModules(modules.map((m, idx) => (idx === i ? { ...m, [field]: value } : m)));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,18 +110,21 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
 
     if (project) {
       await updateProject.mutateAsync({ id: project.id, ...projectData });
+      // Sync technologies: remove unlinked, add new links
+      const existingTechIds = project.project_technologies?.map(pt => pt.technology_id) ?? [];
+      const toRemove = existingTechIds.filter(id => !selectedTechIds.includes(id));
+      const toAdd = selectedTechIds.filter(id => !existingTechIds.includes(id));
+      await Promise.all([
+        ...toRemove.map(tid => removeProjectTech.mutateAsync({ project_id: project.id, technology_id: tid })),
+        ...toAdd.map(tid => addProjectTech.mutateAsync({ project_id: project.id, technology_id: tid })),
+      ]);
       onCancel?.();
     } else {
-      const mods: ModuleInput[] = modules
-        .filter((m) => m.name.trim())
-        .map((m, i) => ({
-          name: m.name.trim(),
-          description: m.description.trim() || null,
-          status: m.status,
-          order: i,
-          project_id: '',
-        }));
-      const created = await createProject.mutateAsync({ ...projectData, modules: mods });
+      const created = await createProject.mutateAsync({ ...projectData, modules: [] });
+      // Link technologies to the new project
+      await Promise.all(
+        selectedTechIds.map(tid => addProjectTech.mutateAsync({ project_id: created.id, technology_id: tid }))
+      );
       navigate(`/projetos/${created.id}`);
     }
   };
@@ -265,63 +293,122 @@ export function ProjectForm({ project, onCancel }: ProjectFormProps) {
         </div>
       </div>
 
-      {/* Modules */}
-      {!project && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-base">Módulos do Projeto</Label>
-            <Button type="button" variant="outline" size="sm" onClick={addModule}
-              className="border-primary/40 text-primary hover:bg-primary/10">
-              <Plus className="w-4 h-4 mr-1" /> Adicionar Módulo
-            </Button>
-          </div>
+      {/* Technologies */}
+      <div className="space-y-3">
+        <div>
+          <Label className="text-base">Tecnologias</Label>
+          <p className="text-xs text-muted-foreground mt-0.5">Selecione ou crie as tecnologias utilizadas neste projeto</p>
+        </div>
 
-          {modules.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-4 border border-dashed border-border rounded-lg">
-              Nenhum módulo adicionado. Você também pode adicionar depois.
-            </p>
-          )}
-
-          <div className="space-y-3">
-            {modules.map((mod, i) => (
-              <div key={i} className="bg-muted/50 border border-border rounded-lg p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground font-medium">Módulo {i + 1}</span>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => removeModule(i)}
-                    className="h-6 w-6 ml-auto text-muted-foreground hover:text-destructive">
-                    <Trash2 className="w-3 h-3" />
-                  </Button>
-                </div>
-                <Input
-                  value={mod.name}
-                  onChange={(e) => updateModuleField(i, 'name', e.target.value)}
-                  placeholder="Nome do módulo"
-                  className="bg-background border-border"
-                />
-                <Input
-                  value={mod.description}
-                  onChange={(e) => updateModuleField(i, 'description', e.target.value)}
-                  placeholder="Descrição (opcional)"
-                  className="bg-background border-border"
-                />
-                <Select
-                  value={mod.status}
-                  onValueChange={(v) => updateModuleField(i, 'status', v)}
+        {/* Selected techs as badges */}
+        {selectedTechs.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {selectedTechs.map(tech => (
+              <span
+                key={tech.id}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium text-white transition-all hover:opacity-80"
+                style={{ backgroundColor: tech.color }}
+              >
+                {tech.name}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveTech(tech.id)}
+                  className="hover:bg-white/20 rounded-full p-0.5 transition-colors"
                 >
-                  <SelectTrigger className="bg-background border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card border-border">
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                    <SelectItem value="concluido">Concluído</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
             ))}
           </div>
+        )}
+
+        {/* Search existing techs */}
+        <div className="relative">
+          <Input
+            value={techSearch}
+            onChange={(e) => {
+              setTechSearch(e.target.value);
+              setShowTechDropdown(true);
+            }}
+            onFocus={() => setShowTechDropdown(true)}
+            onBlur={() => setTimeout(() => setShowTechDropdown(false), 200)}
+            placeholder="Buscar tecnologia..."
+            className="bg-muted border-border"
+          />
+          {showTechDropdown && (techSearch || filteredTechs.length > 0) && (
+            <div className="absolute z-50 top-full mt-1 w-full bg-card border border-border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              {filteredTechs.length > 0 ? (
+                filteredTechs.map(tech => (
+                  <button
+                    key={tech.id}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => handleAddTech(tech.id)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors text-left"
+                  >
+                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: tech.color }} />
+                    {tech.name}
+                  </button>
+                ))
+              ) : techSearch.trim() ? (
+                <div className="px-3 py-2 text-sm text-muted-foreground">
+                  Nenhuma tecnologia encontrada.
+                </div>
+              ) : null}
+            </div>
+          )}
         </div>
-      )}
+
+        {/* Create new tech inline */}
+        {!showNewTechForm ? (
+          <Button type="button" variant="outline" size="sm" onClick={() => setShowNewTechForm(true)}
+            className="border-primary/40 text-primary hover:bg-primary/10">
+            <Plus className="w-4 h-4 mr-1" /> Criar Tecnologia
+          </Button>
+        ) : (
+          <div className="bg-muted/30 border border-primary/30 rounded-xl p-4 space-y-3">
+            <div className="flex items-center gap-2">
+              <Palette className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Nova Tecnologia</span>
+            </div>
+            <Input
+              value={newTechName}
+              onChange={(e) => setNewTechName(e.target.value)}
+              placeholder="Nome da tecnologia (ex: React, Node.js)"
+              className="bg-background border-border"
+            />
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground">Cor</span>
+              <div className="flex flex-wrap gap-2">
+                {TECH_COLORS.map(color => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => setNewTechColor(color)}
+                    className={cn(
+                      'w-7 h-7 rounded-full transition-all border-2',
+                      newTechColor === color ? 'border-foreground scale-110' : 'border-transparent hover:scale-105'
+                    )}
+                    style={{ backgroundColor: color }}
+                  >
+                    {newTechColor === color && <CheckIcon className="w-3.5 h-3.5 text-white m-auto" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button type="button" onClick={handleCreateTech} size="sm" disabled={!newTechName.trim() || createTechnology.isPending}
+                className="gradient-teal text-primary-foreground hover:opacity-90">
+                {createTechnology.isPending ? 'Criando...' : 'Criar'}
+              </Button>
+              <Button type="button" onClick={() => { setShowNewTechForm(false); setNewTechName(''); }} size="sm" variant="outline" className="border-border">
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
 
       {/* Actions */}
       <div className="flex gap-3 pt-2">

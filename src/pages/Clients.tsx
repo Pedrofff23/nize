@@ -98,23 +98,31 @@ export default function Clients() {
 
             {/* Empty */}
             {!isLoading && total === 0 && !search && (
-                <div className="text-center py-20 border border-dashed border-border rounded-2xl">
-                    <Users className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-                    <p className="text-muted-foreground">Nenhum cliente cadastrado ainda.</p>
-                    <Button
-                        onClick={() => setCreateOpen(true)}
-                        variant="outline"
-                        className="mt-4 border-primary/40 text-primary hover:bg-primary/10"
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Cadastrar primeiro cliente
-                    </Button>
+                <div className="text-center py-24 border-2 border-dashed border-border/50 rounded-3xl bg-card/30 backdrop-blur-sm relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative z-10 flex flex-col items-center justify-center">
+                        <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(0,240,255,0.15)] group-hover:scale-110 transition-transform duration-500">
+                            <Users className="w-10 h-10 text-primary" />
+                        </div>
+                        <h3 className="text-xl font-bold text-foreground mb-2">Nenhum cliente ainda</h3>
+                        <p className="text-muted-foreground max-w-sm mb-6">Comece adicionando seu primeiro cliente para gerenciar sua carteira.</p>
+                        <Button
+                            onClick={() => setCreateOpen(true)}
+                            className="gradient-teal text-primary-foreground font-semibold hover:opacity-90 glow-teal rounded-full px-8 shadow-lg shadow-primary/20 transition-all hover:scale-105"
+                        >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Cadastrar Cliente
+                        </Button>
+                    </div>
                 </div>
             )}
 
             {!isLoading && total === 0 && search && (
-                <div className="text-center py-20 border border-dashed border-border rounded-2xl">
-                    <Search className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+                <div className="text-center py-24 border-2 border-dashed border-border/50 rounded-3xl bg-card/30 backdrop-blur-sm">
+                    <div className="w-20 h-20 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-6">
+                        <Search className="w-10 h-10 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground mb-2">Nenhum resultado</h3>
                     <p className="text-muted-foreground">Nenhum cliente encontrado para "{search}".</p>
                 </div>
             )}
@@ -122,10 +130,11 @@ export default function Clients() {
             {/* Grid */}
             {!isLoading && clients && clients.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                    {clients.map((client) => (
+                    {clients.map((client, i) => (
                         <Card
                             key={client.id}
-                            className="bg-card/80 backdrop-blur-md border-border/50 hover:border-primary/50 transition-all duration-300 cursor-pointer group hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,228,206,0.15)] overflow-hidden relative"
+                            className="bg-card/80 backdrop-blur-md border-border/50 hover:border-primary/50 transition-all duration-300 cursor-pointer group hover:-translate-y-1 hover:shadow-[0_8px_30px_rgba(0,228,206,0.15)] overflow-hidden relative animate-in fade-in slide-in-from-bottom-4"
+                            style={{ animationDelay: `${i * 50}ms`, animationFillMode: 'both' }}
                             onClick={() => navigate(`/clientes/${client.id}`)}
                         >
                             <div className="absolute top-0 left-0 w-full h-1 gradient-teal opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -182,11 +191,13 @@ export default function Clients() {
 
             {/* Create Dialog */}
             <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                <DialogContent className="bg-card border-border max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="bg-card/95 backdrop-blur-xl border-border/50 max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl shadow-primary/10">
                     <DialogHeader>
-                        <DialogTitle>Novo Cliente</DialogTitle>
+                        <DialogTitle className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">Novo Cliente</DialogTitle>
                     </DialogHeader>
-                    <ClientForm onSuccess={() => setCreateOpen(false)} onCancel={() => setCreateOpen(false)} />
+                    <div className="mt-4">
+                        <ClientForm onSuccess={() => setCreateOpen(false)} onCancel={() => setCreateOpen(false)} />
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
