@@ -35,18 +35,21 @@ Nize é uma plataforma moderna e intuitiva para gestão de projetos, clientes, f
 ### Instalação
 
 1. **Clone o repositório**:
+
    ```bash
    git clone <url-do-repositorio>
    cd my-project-hub
    ```
 
 2. **Instale as dependências**:
+
    ```bash
    npm install
    ```
 
 3. **Configure as variáveis de ambiente**:
    Crie um arquivo `.env` baseado no [`.env.example`](file:///Users/joaomarcosaraujomaia/Projetos/my-project-hub-1/.env.example) e preencha com suas chaves do Supabase:
+
    ```env
    VITE_SUPABASE_URL=sua_url_do_supabase
    VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_publicavel
@@ -73,11 +76,53 @@ Este projeto está pronto para ser implantado na **Vercel** com apenas alguns cl
 4.  **Configurações do Projeto**:
     - O Framework Preset deve ser detectado automaticamente como **Vite**.
     - Em **Environment Variables**, adicione as variáveis que você configurou no seu arquivo `.env`:
-        - `VITE_SUPABASE_URL`
-        - `VITE_SUPABASE_PUBLISHABLE_KEY`
+      - `VITE_SUPABASE_URL`
+      - `VITE_SUPABASE_PUBLISHABLE_KEY`
 5.  Clique em **Deploy**.
 
-Uma vez implantado, qualquer push para a branch principal (main) acionará um novo build e deploy automaticamente.
+## 🐳 Rodando Localmente com Docker
+
+Esta é a maneira sugerida para rodar o projeto completo (App + Supabase) de forma consistente.
+
+### Pré-requisitos
+
+- **Docker** e **Docker Compose** instalados.
+- **Make** (opcional, mas recomendado para usar os atalhos).
+
+### Passo a Passo
+
+1.  **Prepare o arquivo de ambiente**:
+    Crie uma cópia do arquivo de exemplo para o Supabase hospedado localmente:
+
+    ```bash
+    cp .env.hostsupabase.example .env
+    ```
+
+2.  **Inicie os serviços**:
+    Use o comando `make` para subir todo o stack:
+
+    ```bash
+    make docker-up
+    ```
+
+3.  **Acesse as ferramentas**:
+    - **Aplicação (Frontend)**: [http://localhost:8080](http://localhost:8080)
+    - **Supabase Studio (Dashboard)**: [http://localhost:8000](http://localhost:8000)
+      - _Credenciais padrão definidas no `.env`: `supabase` / `this_password_is_insecure_and_should_be_updated`_
+    - **Mailpit (E-mails)**: [http://localhost:54324](http://localhost:54324) (Interface Web para visualizar e-mails enviados pelo Auth)
+    - **Supabase API**: [http://localhost:8000](http://localhost:8000)
+
+### Comandos Úteis do Makefile
+
+| Comando               | Descrição                                                     |
+| :-------------------- | :------------------------------------------------------------ |
+| `make docker-up`      | Sobe todos os serviços (App + Supabase + Mailpit).            |
+| `make docker-down`    | Para todos os containers.                                     |
+| `make docker-status`  | Lista o status de todos os serviços.                          |
+| `make docker-logs`    | Acompanha os logs em tempo real.                              |
+| `make docker-destroy` | **Cuidado:** Remove tudo, incluindo volumes e dados do banco! |
+
+---
 
 ## 🏗️ Estrutura do Projeto
 
